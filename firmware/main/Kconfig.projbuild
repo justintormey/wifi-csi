@@ -77,4 +77,22 @@ menu "WiFi CSI Configuration"
         default 5500
         range 1 65535
 
+    config CSI_STATUS_LED_GPIO
+        int "Status LED GPIO pin"
+        default 2
+        range 0 48
+        help
+            GPIO pin connected to the status LED. Default GPIO 2 works for
+            most ESP32-S3 dev boards (built-in blue LED). Set to your
+            board's LED pin.
+
+    config CSI_WIFI_WATCHDOG_TIMEOUT_S
+        int "WiFi watchdog timeout (seconds)"
+        default 30
+        range 10 300
+        help
+            If WiFi stays disconnected for this many seconds, the board
+            restarts automatically. Prevents permanent stalls from
+            transient WiFi failures.
+
 endmenu

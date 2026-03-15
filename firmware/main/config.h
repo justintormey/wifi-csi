@@ -45,6 +45,15 @@
 
 #define BOARD_ID           CONFIG_CSI_BOARD_ID
 
+/* ── Status LED ─────────────────────────────────────────────────────── */
+
+#define STATUS_LED_GPIO    CONFIG_CSI_STATUS_LED_GPIO
+
+/* ── WiFi Watchdog ─────────────────────────────────────────────────── */
+
+/** Restart the board if WiFi stays disconnected longer than this (seconds). */
+#define WIFI_WATCHDOG_TIMEOUT_S  CONFIG_CSI_WIFI_WATCHDOG_TIMEOUT_S
+
 /* ── CSI Constants ──────────────────────────────────────────────────── */
 
 /** HT40 mode provides 114 subcarriers of I/Q data per frame. */
