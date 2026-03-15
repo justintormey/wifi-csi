@@ -1,0 +1,131 @@
+# Sensor configuration for WiFi CSI tracking system.
+# Defines ESP32-S3 board MACs, roles (TX/RX), floor assignments,
+# WiFi channels, and expected MQTT topics.
+
+# ── Phase 1: Single floor (Ground Floor) ──
+# 1 TX + 3 RX boards. Phase 2 adds floors 2 and 3.
+
+sensors:
+  # ── Floor 1: Ground Floor (Channel 1) ──
+  - mac: "aa:bb:cc:dd:01:00"
+    role: tx
+    floor: 1
+    channel: 1
+    position:
+      x: 7.5   # center of 15m width
+      y: 6.0   # center of 12m depth
+    label: "Floor 1 TX (ceiling center)"
+
+  - mac: "aa:bb:cc:dd:01:01"
+    role: rx
+    floor: 1
+    channel: 1
+    position:
+      x: 1.0
+      y: 1.0
+    label: "Floor 1 RX-A (kitchen corner)"
+
+  - mac: "aa:bb:cc:dd:01:02"
+    role: rx
+    floor: 1
+    channel: 1
+    position:
+      x: 14.0
+      y: 1.0
+    label: "Floor 1 RX-B (living room corner)"
+
+  - mac: "aa:bb:cc:dd:01:03"
+    role: rx
+    floor: 1
+    channel: 1
+    position:
+      x: 7.5
+      y: 11.0
+    label: "Floor 1 RX-C (garage wall)"
+
+  # ── Floor 2: Second Floor (Channel 6) ──
+  - mac: "aa:bb:cc:dd:02:00"
+    role: tx
+    floor: 2
+    channel: 6
+    position:
+      x: 7.5
+      y: 6.0
+    label: "Floor 2 TX (ceiling center)"
+
+  - mac: "aa:bb:cc:dd:02:01"
+    role: rx
+    floor: 2
+    channel: 6
+    position:
+      x: 1.0
+      y: 1.0
+    label: "Floor 2 RX-A (master bedroom corner)"
+
+  - mac: "aa:bb:cc:dd:02:02"
+    role: rx
+    floor: 2
+    channel: 6
+    position:
+      x: 14.0
+      y: 1.0
+    label: "Floor 2 RX-B (bedroom 2 corner)"
+
+  - mac: "aa:bb:cc:dd:02:03"
+    role: rx
+    floor: 2
+    channel: 6
+    position:
+      x: 7.5
+      y: 11.0
+    label: "Floor 2 RX-C (hallway end)"
+
+  # ── Floor 3: Third Floor / Attic (Channel 11) ──
+  - mac: "aa:bb:cc:dd:03:00"
+    role: tx
+    floor: 3
+    channel: 11
+    position:
+      x: 6.0
+      y: 5.0
+    label: "Floor 3 TX (ceiling center)"
+
+  - mac: "aa:bb:cc:dd:03:01"
+    role: rx
+    floor: 3
+    channel: 11
+    position:
+      x: 1.0
+      y: 1.0
+    label: "Floor 3 RX-A (office corner)"
+
+  - mac: "aa:bb:cc:dd:03:02"
+    role: rx
+    floor: 3
+    channel: 11
+    position:
+      x: 11.0
+      y: 1.0
+    label: "Floor 3 RX-B (media room corner)"
+
+  - mac: "aa:bb:cc:dd:03:03"
+    role: rx
+    floor: 3
+    channel: 11
+    position:
+      x: 6.0
+      y: 9.0
+    label: "Floor 3 RX-C (back wall)"
+
+# MQTT topic pattern for CSI data.
+# Each RX board publishes to: csi/{floor_id}/{rx_mac}
+# Payload: 478-byte binary CsiPacket (see collector/csi_packet.py).
+mqtt:
+  broker_host: "localhost"
+  broker_port: 1883
+  topic_prefix: "csi"
+  # Full topic pattern: csi/{floor_id}/{rx_mac}
+  # Example: csi/1/aa:bb:cc:dd:01:01
+  subscribe_pattern: "csi/#"
+  keepalive_s: 60
+  qos: 0  # QoS 0 for CSI — dropping frames is acceptable

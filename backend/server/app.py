@@ -13,7 +13,7 @@ import logging
 import time
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import yaml
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -177,7 +177,7 @@ async def calibration_start(floor: int = 1):
 
 
 @app.websocket("/ws/tracking")
-async def ws_tracking(websocket: WebSocket, floors: str | None = None):
+async def ws_tracking(websocket: WebSocket, floors: Optional[str] = None):
     """Real-time tracking data stream (10 Hz broadcast).
 
     Clients connect here to receive TrackingFrame payloads.
