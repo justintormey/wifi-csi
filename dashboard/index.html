@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WiFi CSI Tracker</title>
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/floorplan.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ═══ Header Bar ═══ -->
+    <header id="header">
+      <div class="header-left">
+        <span class="header-title">WiFi CSI Tracker</span>
+        <span id="connection-status" class="connection-badge status-offline">OFFLINE</span>
+      </div>
+      <div class="header-controls">
+        <div class="floor-tabs" id="floor-tabs">
+          <button class="floor-tab active" data-floor="1">Floor 1</button>
+          <button class="floor-tab" data-floor="2">Floor 2</button>
+          <button class="floor-tab" data-floor="3">Floor 3</button>
+        </div>
+        <label class="demo-toggle">
+          <input type="checkbox" id="demo-toggle" checked>
+          <span>Demo</span>
+        </label>
+      </div>
+    </header>
+
+    <!-- ═══ Main Floor Plan Area ═══ -->
+    <main id="main">
+      <div id="floorplan-container"></div>
+      <canvas id="noise-canvas"></canvas>
+      <div id="tracking-overlay"></div>
+    </main>
+
+    <!-- ═══ Right Sidebar: Vitals + Signal ═══ -->
+    <aside id="sidebar">
+
+      <!-- Occupancy Panel -->
+      <div class="panel">
+        <div class="panel-title">Occupancy</div>
+        <div class="occupancy-display">
+          <span class="occupancy-count" id="occupancy-count">--</span>
+          <span class="occupancy-label">people detected</span>
+        </div>
+        <div class="occupancy-confidence" id="occupancy-confidence">
+          <span class="vital-label">Confidence</span>
+          <span class="vital-value low-confidence">--</span>
+        </div>
+      </div>
+
+      <!-- Vitals Panel -->
+      <div class="panel panel-vitals">
+        <div class="panel-title">Vitals</div>
+        <div id="vitals-list">
+          <div class="vitals-empty">No tracking data</div>
+        </div>
+      </div>
+
+      <!-- Signal Quality Panel -->
+      <div class="panel">
+        <div class="panel-title">Signal Quality</div>
+        <div id="signal-quality-list">
+          <div class="signal-bar">
+            <span class="signal-bar-label">Living</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill good" style="width: 0%"></div></div>
+          </div>
+          <div class="signal-bar">
+            <span class="signal-bar-label">Kitchen</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill good" style="width: 0%"></div></div>
+          </div>
+          <div class="signal-bar">
+            <span class="signal-bar-label">Dining</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill good" style="width: 0%"></div></div>
+          </div>
+          <div class="signal-bar">
+            <span class="signal-bar-label">Hallway</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill fair" style="width: 0%"></div></div>
+          </div>
+          <div class="signal-bar">
+            <span class="signal-bar-label">Garage</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill poor" style="width: 0%"></div></div>
+          </div>
+          <div class="signal-bar">
+            <span class="signal-bar-label">Bath</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill fair" style="width: 0%"></div></div>
+          </div>
+          <div class="signal-bar">
+            <span class="signal-bar-label">Laundry</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill poor" style="width: 0%"></div></div>
+          </div>
+          <div class="signal-bar">
+            <span class="signal-bar-label">Entry</span>
+            <div class="signal-bar-track"><div class="signal-bar-fill fair" style="width: 0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Simulation Controls Panel -->
+      <div class="panel" id="sim-controls-panel">
+        <div class="panel-title">Simulation</div>
+        <div class="sim-control-row">
+          <label class="sim-label">Scenario</label>
+          <select id="scenario-select" class="sim-select">
+            <option value="morning_routine">Morning Routine</option>
+            <option value="family_evening">Family Evening</option>
+            <option value="full_house">Full House</option>
+            <option value="random">Random</option>
+          </select>
+        </div>
+        <div class="sim-control-row">
+          <label class="sim-label">Speed</label>
+          <div class="speed-controls">
+            <button class="speed-btn" data-speed="0.5">0.5x</button>
+            <button class="speed-btn active" data-speed="1">1x</button>
+            <button class="speed-btn" data-speed="2">2x</button>
+            <button class="speed-btn" data-speed="5">5x</button>
+          </div>
+        </div>
+        <div class="sim-control-row sim-actions">
+          <button class="sim-btn" id="sim-restart">Restart</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ═══ Bottom Status Bar ═══ -->
+    <footer id="status-bar">
+      <div class="status-left">
+        <div class="status-indicator">
+          <span class="status-dot" id="status-dot"></span>
+          <span id="status-label">Offline</span>
+        </div>
+        <span class="status-sep">|</span>
+        <span id="status-floor">Floor 1 &mdash; Ground Floor</span>
+        <span class="status-sep">|</span>
+        <span id="status-tick-rate">--Hz</span>
+      </div>
+      <div class="status-right">
+        <span id="status-timestamp">--:--:--</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

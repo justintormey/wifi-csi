@@ -1,0 +1,137 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1050" class="floorplan" data-floor="1">
+  <defs>
+    <pattern id="grid1" width="100" height="100" patternUnits="userSpaceOnUse">
+      <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(0,255,255,0.04)" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- Background grid -->
+  <rect width="1800" height="1050" fill="url(#grid1)" class="floor-bg"/>
+
+  <!-- ═══ Rooms ═══ -->
+  <g class="rooms">
+    <!-- Living Room: x:0 y:0 w:7m h:5.5m -->
+    <rect x="0" y="0" width="700" height="550" class="room" data-room="living_room"/>
+    <!-- Kitchen: x:7 y:0 w:5.5m h:5.5m -->
+    <rect x="700" y="0" width="550" height="550" class="room" data-room="kitchen"/>
+    <!-- Dining Room: x:12.5 y:0 w:5.5m h:5.5m -->
+    <rect x="1250" y="0" width="550" height="550" class="room" data-room="dining"/>
+    <!-- Hallway: x:5 y:5.5 w:8m h:2m -->
+    <rect x="500" y="550" width="800" height="200" class="room room-hallway" data-room="hallway"/>
+    <!-- Garage: x:0 y:5.5 w:5m h:5m -->
+    <rect x="0" y="550" width="500" height="500" class="room room-garage" data-room="garage"/>
+    <!-- Bathroom: x:13 y:5.5 w:3m h:2.5m -->
+    <rect x="1300" y="550" width="300" height="250" class="room" data-room="bathroom"/>
+    <!-- Laundry: x:13 y:8 w:3m h:2.5m -->
+    <rect x="1300" y="800" width="300" height="250" class="room" data-room="laundry"/>
+    <!-- Entry: x:16 y:5.5 w:2m h:5m -->
+    <rect x="1600" y="550" width="200" height="500" class="room" data-room="entry"/>
+  </g>
+
+  <!-- ═══ Walls (exterior) ═══ -->
+  <g class="walls">
+    <!-- Top wall -->
+    <line x1="0" y1="0" x2="1800" y2="0" class="wall wall-exterior"/>
+    <!-- Left wall -->
+    <line x1="0" y1="0" x2="0" y2="1050" class="wall wall-exterior"/>
+    <!-- Bottom wall segments -->
+    <line x1="0" y1="1050" x2="500" y2="1050" class="wall wall-exterior"/>
+    <line x1="500" y1="750" x2="500" y2="1050" class="wall wall-exterior"/>
+    <line x1="500" y1="750" x2="1300" y2="750" class="wall wall-exterior"/>
+    <line x1="1300" y1="1050" x2="1800" y2="1050" class="wall wall-exterior"/>
+    <!-- Right wall -->
+    <line x1="1800" y1="0" x2="1800" y2="1050" class="wall wall-exterior"/>
+
+    <!-- Interior walls -->
+    <!-- Living/Kitchen divider -->
+    <line x1="700" y1="0" x2="700" y2="200" class="wall wall-interior"/>
+    <line x1="700" y1="340" x2="700" y2="550" class="wall wall-interior"/>
+    <!-- Kitchen/Dining divider -->
+    <line x1="1250" y1="0" x2="1250" y2="200" class="wall wall-interior"/>
+    <line x1="1250" y1="340" x2="1250" y2="550" class="wall wall-interior"/>
+    <!-- Living to hallway -->
+    <line x1="0" y1="550" x2="500" y2="550" class="wall wall-interior"/>
+    <!-- Kitchen to hallway -->
+    <line x1="500" y1="550" x2="630" y2="550" class="wall wall-interior"/>
+    <line x1="770" y1="550" x2="1050" y2="550" class="wall wall-interior"/>
+    <!-- Dining to hallway -->
+    <line x1="1050" y1="550" x2="1200" y2="550" class="wall wall-interior"/>
+    <line x1="1300" y1="550" x2="1800" y2="550" class="wall wall-interior"/>
+    <!-- Garage east wall -->
+    <line x1="500" y1="550" x2="500" y2="750" class="wall wall-interior"/>
+    <!-- Hallway south wall -->
+    <line x1="500" y1="750" x2="1300" y2="750" class="wall wall-interior"/>
+    <!-- Bathroom/Laundry divider -->
+    <line x1="1300" y1="800" x2="1600" y2="800" class="wall wall-interior"/>
+    <!-- Entry west wall -->
+    <line x1="1600" y1="550" x2="1600" y2="800" class="wall wall-interior"/>
+    <line x1="1600" y1="900" x2="1600" y2="1050" class="wall wall-interior"/>
+    <!-- Bathroom east wall / Entry west wall -->
+    <line x1="1300" y1="550" x2="1300" y2="1050" class="wall wall-interior"/>
+
+    <!-- Stairwell area (in hallway) -->
+    <rect x="850" y="560" width="180" height="180" class="stairwell" data-stairwell="up"/>
+  </g>
+
+  <!-- ═══ Doors ═══ -->
+  <g class="doors">
+    <!-- Living → Kitchen -->
+    <line x1="700" y1="200" x2="700" y2="340" class="door"/>
+    <!-- Kitchen → Dining -->
+    <line x1="1250" y1="200" x2="1250" y2="340" class="door"/>
+    <!-- Kitchen → Hallway -->
+    <line x1="630" y1="550" x2="770" y2="550" class="door"/>
+    <!-- Dining → Hallway -->
+    <line x1="1200" y1="550" x2="1300" y2="550" class="door"/>
+    <!-- Garage → Hallway -->
+    <line x1="500" y1="590" x2="500" y2="710" class="door"/>
+    <!-- Hallway → Bathroom -->
+    <line x1="1300" y1="600" x2="1300" y2="730" class="door"/>
+    <!-- Bathroom → Laundry -->
+    <line x1="1380" y1="800" x2="1520" y2="800" class="door"/>
+    <!-- Hallway → Entry -->
+    <line x1="1600" y1="800" x2="1600" y2="900" class="door"/>
+    <!-- Front door (entry exterior) -->
+    <line x1="1800" y1="700" x2="1800" y2="850" class="door door-exterior"/>
+    <!-- Garage door -->
+    <line x1="150" y1="1050" x2="400" y2="1050" class="door door-garage"/>
+  </g>
+
+  <!-- ═══ Windows ═══ -->
+  <g class="windows">
+    <!-- Living room windows (top + left) -->
+    <line x1="150" y1="0" x2="350" y2="0" class="window"/>
+    <line x1="450" y1="0" x2="600" y2="0" class="window"/>
+    <line x1="0" y1="100" x2="0" y2="300" class="window"/>
+    <!-- Kitchen window (top) -->
+    <line x1="850" y1="0" x2="1050" y2="0" class="window"/>
+    <!-- Dining room windows (top + right) -->
+    <line x1="1400" y1="0" x2="1650" y2="0" class="window"/>
+    <line x1="1800" y1="100" x2="1800" y2="350" class="window"/>
+    <!-- Entry window -->
+    <line x1="1800" y1="580" x2="1800" y2="680" class="window"/>
+  </g>
+
+  <!-- ═══ Room Labels ═══ -->
+  <g class="room-labels">
+    <text x="350" y="290" class="label">Living Room</text>
+    <text x="975" y="290" class="label">Kitchen</text>
+    <text x="1525" y="290" class="label">Dining Room</text>
+    <text x="900" y="665" class="label label-small">Hallway</text>
+    <text x="250" y="810" class="label">Garage</text>
+    <text x="1450" y="690" class="label label-small">Bath</text>
+    <text x="1450" y="940" class="label label-small">Laundry</text>
+    <text x="1700" y="810" class="label label-small">Entry</text>
+    <text x="940" y="670" class="label label-tiny">▲ UP</text>
+  </g>
+
+  <!-- ═══ Sensor positions (decorative) ═══ -->
+  <g class="sensors">
+    <!-- TX (ceiling center) -->
+    <circle cx="900" cy="525" r="8" class="sensor sensor-tx"/>
+    <!-- RX units -->
+    <circle cx="50" cy="50" r="6" class="sensor sensor-rx"/>
+    <circle cx="1750" cy="50" r="6" class="sensor sensor-rx"/>
+    <circle cx="50" cy="1000" r="6" class="sensor sensor-rx"/>
+  </g>
+</svg>
