@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from processor.amplitude_filter import (
+from backend.processor.amplitude_filter import (
     BAND_BREATHING,
     BAND_HEARTRATE,
     BAND_MOVEMENT,

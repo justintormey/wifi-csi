@@ -1,6 +1,5 @@
 """Tests for the fingerprint database module."""
 
-import tempfile
 from pathlib import Path
 
 import numpy as np

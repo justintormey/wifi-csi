@@ -7,8 +7,6 @@ where different frequency bands isolate movement, breathing, and heartrate.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
 import numpy as np
 from numpy.typing import NDArray
 from scipy.signal import butter, sosfiltfilt
