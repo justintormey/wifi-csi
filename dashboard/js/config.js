@@ -5,7 +5,7 @@
 
 export const CONFIG = {
   // WebSocket endpoint (backend or simulator)
-  wsUrl: 'ws://localhost:8080/ws/tracking',
+  wsUrl: 'ws://localhost:8000/ws/tracking',
 
   // Simulation defaults
   simulation: {
