@@ -249,7 +249,11 @@ class TestBufferManagement:
         for _ in range(50):
             ext.push(np.ones(N_SUBCARRIERS))
         with pytest.raises(RuntimeError, match="Need at least"):
-            ext.estimate()
+            ext.estimate(
+                position_confidence=0.8,
+                is_stationary=True,
+                stationary_duration_s=60.0,
+            )
 
     def test_empty_amplitude_raises(self):
         ext = make_extractor()
@@ -320,7 +324,11 @@ class TestHeartRateAccuracyClean:
         for snap in snapshots:
             ext.push(snap)
 
-        result = ext.estimate()
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
         assert result is not None, f"No result for {target_bpm} bpm"
         assert result.display is True
         assert result.rate_bpm is not None
@@ -337,7 +345,11 @@ class TestHeartRateAccuracyClean:
         for snap in snapshots:
             ext.push(snap)
 
-        result = ext.estimate()
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
         assert result is not None
         assert result.display is True
         assert result.rate_bpm is not None
@@ -367,7 +379,12 @@ class TestHeartRateWithBreathing:
         for snap in snapshots:
             ext.push(snap)
 
-        result = ext.estimate(breathing_freq_hz=0.25)
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+            breathing_freq_hz=0.25,
+        )
         assert result is not None
         # With known breathing freq, heartbeat extraction is more reliable
         if result.display and result.rate_bpm is not None:
@@ -387,7 +404,11 @@ class TestHeartRateWithBreathing:
         for snap in snapshots:
             ext.push(snap)
 
-        result = ext.estimate()  # no breathing_freq_hz provided
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )  # no breathing_freq_hz provided
         assert result is not None
 
 
@@ -518,7 +539,11 @@ class TestOutOfRangeRejection:
         for snap in snapshots:
             ext.push(snap)
 
-        result = ext.estimate()
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
         # Should be None because 30 bpm is below min_bpm=40
         # OR if detected, rate should be >= 40
         assert result is None or (
@@ -535,7 +560,11 @@ class TestOutOfRangeRejection:
         for snap in snapshots:
             ext.push(snap)
 
-        result = ext.estimate()
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
         # Should be None because 150 bpm is above max_bpm=120
         # OR if detected, rate should be <= 120
         assert result is None or (
@@ -558,7 +587,11 @@ class TestNoiseTolerance:
         for snap in snapshots:
             ext.push(snap)
 
-        result = ext.estimate()
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
         assert result is not None
 
     def test_pure_noise_returns_low_confidence(self):
@@ -568,7 +601,11 @@ class TestNoiseTolerance:
         for _ in range(3000):
             ext.push(rng.normal(3.0, 1.0, size=N_SUBCARRIERS))
 
-        result = ext.estimate()
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
         # CWT always finds some peak, but confidence should be low
         if result is not None and result.display:
             assert result.confidence < 0.5
@@ -582,7 +619,12 @@ class TestNoiseTolerance:
 class TestUpdateMethod:
     def test_update_returns_none_before_ready(self):
         ext = make_extractor(min_snapshots=100)
-        result = ext.update(np.ones(N_SUBCARRIERS))
+        result = ext.update(
+            np.ones(N_SUBCARRIERS),
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
         assert result is None
 
     def test_update_returns_result_when_ready(self):
@@ -593,7 +635,12 @@ class TestUpdateMethod:
         ext = make_extractor(min_snapshots=500, window_seconds=30.0)
         last_result = None
         for snap in snapshots:
-            r = ext.update(snap)
+            r = ext.update(
+                snap,
+                position_confidence=0.8,
+                is_stationary=True,
+                stationary_duration_s=60.0,
+            )
             if r is not None:
                 last_result = r
 

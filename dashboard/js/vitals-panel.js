@@ -43,6 +43,9 @@ const COLORS = {
 };
 
 // ── Sparkline Data Buffer ──────────────────────────────────────
+// Stores up to 60 data points = 60 seconds of history. Input is
+// downsampled 10:1 (10Hz payload → 1Hz recording) to produce a
+// readable time series without overwhelming the chart.
 
 class SparklineBuffer {
   constructor(maxPoints = SPARKLINE_POINTS) {
@@ -109,6 +112,10 @@ class PersonVitals {
     this._updateHrFade();
   }
 
+  // Heart rate fades in/out over 800ms rather than appearing/disappearing
+  // instantly. This communicates that HR detection is gradual — the system
+  // needs time to extract a weak signal from CSI data, and losing the
+  // reading is similarly transitional rather than binary.
   _updateHrFade() {
     const shouldShow = this.heartrate.display;
     const now = performance.now();
@@ -266,24 +273,30 @@ export class VitalsPanel {
       return;
     }
 
-    const buttons = [];
     let i = 0;
+    const btnContainer = document.createElement('div');
+    btnContainer.className = 'vp-person-btns';
     for (const [id] of this.people) {
       if (i >= MAX_PEOPLE_DISPLAY) break;
       const active = id === this.selectedPersonId;
-      buttons.push(
-        `<button class="vp-person-btn${active ? ' active' : ''}" data-person-id="${id}">
-          <span class="vp-person-dot" style="background: ${active ? COLORS.cyan : COLORS.textDim}"></span>
-          ${id.toUpperCase()}
-        </button>`
-      );
+      const btn = document.createElement('button');
+      btn.className = 'vp-person-btn' + (active ? ' active' : '');
+      btn.dataset.personId = id;
+      const dot = document.createElement('span');
+      dot.className = 'vp-person-dot';
+      dot.style.background = active ? COLORS.cyan : COLORS.textDim;
+      btn.appendChild(dot);
+      btn.appendChild(document.createTextNode(' ' + id.toUpperCase()));
+      btnContainer.appendChild(btn);
       i++;
     }
 
-    this._elPersonSelector.innerHTML = `
-      <div class="vp-section-label">TRACKED</div>
-      <div class="vp-person-btns">${buttons.join('')}</div>
-    `;
+    this._elPersonSelector.innerHTML = '';
+    const label = document.createElement('div');
+    label.className = 'vp-section-label';
+    label.textContent = 'TRACKED';
+    this._elPersonSelector.appendChild(label);
+    this._elPersonSelector.appendChild(btnContainer);
 
     // Bind click handlers
     for (const btn of this._elPersonSelector.querySelectorAll('.vp-person-btn')) {
@@ -352,7 +365,7 @@ export class VitalsPanel {
             </span>
           </div>
           <div class="vp-vital-value vp-hr-value">
-            <span class="vp-bpm">${p.heartrate.rate_bpm}</span>
+            <span class="vp-bpm">${p.heartrate.rate_bpm ?? '--'}</span>
             <span class="vp-bpm-unit">bpm</span>
           </div>
           <canvas class="vp-sparkline" data-sparkline="heartrate" width="200" height="40"></canvas>

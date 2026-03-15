@@ -71,6 +71,7 @@ DEFAULT_CWT_W: float = 6.0                # Morlet omega0 parameter
 DEFAULT_POSITION_CONFIDENCE_THRESHOLD: float = 0.6
 DEFAULT_STATIONARY_SECONDS_THRESHOLD: float = 30.0
 DEFAULT_BREATHING_HARMONICS: int = 3       # number of breathing harmonics to remove
+DEFAULT_MIN_INTERVAL_S: float = 1.0        # minimum seconds between CWT estimations
 
 
 # ---------------------------------------------------------------------------
@@ -178,6 +179,7 @@ class HeartRateExtractor:
         position_confidence_threshold: Minimum position confidence for display.
         stationary_seconds_threshold: Minimum continuous stationary seconds.
         breathing_harmonics: Number of breathing harmonics to remove.
+        min_interval_s: Minimum seconds between CWT estimations (rate limiting).
     """
 
     def __init__(
@@ -196,6 +198,7 @@ class HeartRateExtractor:
         position_confidence_threshold: float = DEFAULT_POSITION_CONFIDENCE_THRESHOLD,
         stationary_seconds_threshold: float = DEFAULT_STATIONARY_SECONDS_THRESHOLD,
         breathing_harmonics: int = DEFAULT_BREATHING_HARMONICS,
+        min_interval_s: float = DEFAULT_MIN_INTERVAL_S,
     ) -> None:
         if sample_rate <= 0:
             raise ValueError("sample_rate must be > 0")
@@ -222,6 +225,7 @@ class HeartRateExtractor:
         self._position_confidence_threshold = position_confidence_threshold
         self._stationary_seconds_threshold = stationary_seconds_threshold
         self._breathing_harmonics = breathing_harmonics
+        self._min_interval_s = min_interval_s
 
         # Frequency band for CWT (derived from bpm limits)
         self._freq_lo = min_bpm / 60.0   # 40 bpm → 0.667 Hz
@@ -230,6 +234,10 @@ class HeartRateExtractor:
         # Rolling buffer: list of 1-D amplitude arrays (one per CSI snapshot)
         self._buffer: list[NDArray[np.float64]] = []
         self._n_subcarriers: int | None = None
+
+        # Rate limiting: track snapshots since last estimation
+        self._snapshots_since_estimate: int = 0
+        self._last_result: Optional[HeartRateResult] = None
 
     # ------------------------------------------------------------------
     # Public API
@@ -264,6 +272,7 @@ class HeartRateExtractor:
             )
 
         self._buffer.append(amp)
+        self._snapshots_since_estimate += 1
 
         # Trim to window size
         if len(self._buffer) > self._window_samples:
@@ -271,9 +280,9 @@ class HeartRateExtractor:
 
     def estimate(
         self,
-        position_confidence: float = 1.0,
-        is_stationary: bool = True,
-        stationary_duration_s: float = 60.0,
+        position_confidence: float,
+        is_stationary: bool,
+        stationary_duration_s: float,
         breathing_freq_hz: Optional[float] = None,
     ) -> Optional[HeartRateResult]:
         """Estimate heart rate from the current buffer.
@@ -306,7 +315,7 @@ class HeartRateExtractor:
         selection = select_top_k(matrix, k=k)
         selected = selection.data  # (T, K)
 
-        # Bandpass filter in the heartrate band
+        # Bandpass filter in the heartrate band (per-column for SNR)
         filtered = butterworth_bandpass(
             selected,
             self._sample_rate,
@@ -317,13 +326,21 @@ class HeartRateExtractor:
         # Average across selected subcarriers → single waveform
         waveform = np.mean(filtered, axis=1)  # (T,)
 
-        # Remove breathing harmonics
-        cleaned = _remove_breathing_harmonics(
-            waveform,
-            self._sample_rate,
-            breathing_freq_hz=breathing_freq_hz,
-            n_harmonics=self._breathing_harmonics,
-        )
+        # Remove breathing harmonics that fall within the heartrate band
+        # (e.g. 4th harmonic of 0.25 Hz breathing = 1.0 Hz).
+        # Only when an explicit breathing_freq_hz is provided — auto-detection
+        # on raw CSI is too noisy (spurious peaks produce harmonics that
+        # collide with real heartbeat frequencies).  The pipeline orchestrator
+        # should pass the known frequency from BreathingExtractor.
+        if breathing_freq_hz is not None:
+            cleaned = _remove_breathing_harmonics(
+                waveform,
+                self._sample_rate,
+                breathing_freq_hz=breathing_freq_hz,
+                n_harmonics=self._breathing_harmonics,
+            )
+        else:
+            cleaned = waveform
 
         # CWT with Morlet wavelet
         cwt_result = morlet_cwt(
@@ -375,26 +392,44 @@ class HeartRateExtractor:
     def update(
         self,
         amplitude: NDArray[np.float64],
-        position_confidence: float = 1.0,
-        is_stationary: bool = True,
-        stationary_duration_s: float = 60.0,
+        position_confidence: float,
+        is_stationary: bool,
+        stationary_duration_s: float,
         breathing_freq_hz: Optional[float] = None,
     ) -> Optional[HeartRateResult]:
         """Convenience: push a snapshot and estimate if ready.
 
+        Rate-limited: skips CWT if fewer than ``min_interval_s`` worth of
+        snapshots have arrived since the last estimation, returning the
+        cached result instead.
+
         Returns HeartRateResult if enough data, None otherwise.
         """
         self.push(amplitude)
-        if self.is_ready:
-            return self.estimate(
-                position_confidence=position_confidence,
-                is_stationary=is_stationary,
-                stationary_duration_s=stationary_duration_s,
-                breathing_freq_hz=breathing_freq_hz,
-            )
-        return None
+        if not self.is_ready:
+            return None
+
+        # Rate limiting: only run CWT after enough new snapshots
+        min_snapshots_interval = int(self._min_interval_s * self._sample_rate)
+        if (
+            self._last_result is not None
+            and self._snapshots_since_estimate < min_snapshots_interval
+        ):
+            return self._last_result
+
+        result = self.estimate(
+            position_confidence=position_confidence,
+            is_stationary=is_stationary,
+            stationary_duration_s=stationary_duration_s,
+            breathing_freq_hz=breathing_freq_hz,
+        )
+        self._snapshots_since_estimate = 0
+        self._last_result = result
+        return result
 
     def reset(self) -> None:
         """Clear the buffer and reset all state."""
         self._buffer.clear()
         self._n_subcarriers = None
+        self._snapshots_since_estimate = 0
+        self._last_result = None

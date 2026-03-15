@@ -161,10 +161,13 @@ class MotionDetector:
         # Compute per-subcarrier variance across time, then take the mean
         raw_variance = float(np.mean(np.var(M, axis=0)))
 
-        # Update adaptive baseline (EMA of raw variance)
+        # Update adaptive baseline (EMA of raw variance).
+        # Only update when stationary to prevent sustained motion from
+        # inflating the baseline and reducing future sensitivity.
         if self._baseline_variance is None:
             self._baseline_variance = raw_variance
-        else:
+        elif self._stationary_snapshots > 0:
+            # Only update baseline when currently classified as stationary
             alpha = self._baseline_ema_alpha
             self._baseline_variance = (
                 alpha * raw_variance + (1 - alpha) * self._baseline_variance

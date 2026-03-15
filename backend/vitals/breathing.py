@@ -124,6 +124,8 @@ class BreathingExtractor:
             raise ValueError("Need 0 <= min_bpm < max_bpm")
         if min_snapshots < 2:
             raise ValueError("min_snapshots must be >= 2")
+        if min_concentration >= 0.5:
+            raise ValueError("min_concentration must be < 0.5 to avoid division by zero in confidence formula")
 
         self._sample_rate = sample_rate
         self._window_samples = int(window_seconds * sample_rate)
