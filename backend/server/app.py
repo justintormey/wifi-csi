@@ -177,14 +177,25 @@ async def calibration_start(floor: int = 1):
 
 
 @app.websocket("/ws/tracking")
-async def ws_tracking(websocket: WebSocket):
+async def ws_tracking(websocket: WebSocket, floors: str | None = None):
     """Real-time tracking data stream (10 Hz broadcast).
 
     Clients connect here to receive TrackingFrame payloads.
     The actual data push is driven by the backend pipeline
     calling ``_state.ws_manager.broadcast_frame(frame)``.
+
+    Query params:
+        floors: Comma-separated floor numbers to subscribe to (e.g. "1,2").
+                Omit to receive all floors.
     """
-    await _state.ws_manager.connect(websocket)
+    floor_filter = None
+    if floors:
+        try:
+            floor_filter = {int(f.strip()) for f in floors.split(",")}
+        except ValueError:
+            pass
+
+    await _state.ws_manager.connect(websocket, floor_filter=floor_filter)
     try:
         while True:
             # Keep connection alive; ignore inbound messages.
