@@ -1,0 +1,80 @@
+menu "WiFi CSI Configuration"
+
+    choice CSI_BOARD_ROLE
+        prompt "Board role"
+        default CSI_BOARD_ROLE_RX
+        help
+            Select whether this board acts as a TX (transmitter) or RX (receiver).
+            TX boards send UDP frames at the configured rate.
+            RX boards extract CSI from received frames and publish via MQTT.
+
+        config CSI_BOARD_ROLE_TX
+            bool "TX (Transmitter)"
+        config CSI_BOARD_ROLE_RX
+            bool "RX (Receiver)"
+    endchoice
+
+    config CSI_WIFI_SSID
+        string "WiFi SSID"
+        default "MyHomeWiFi"
+        help
+            House WiFi network SSID. All boards connect as STA.
+
+    config CSI_WIFI_PASSWORD
+        string "WiFi Password"
+        default "changeme"
+        help
+            House WiFi network password.
+
+    config CSI_WIFI_CHANNEL
+        int "WiFi channel (1, 6, or 11)"
+        default 1
+        range 1 13
+        help
+            WiFi channel for this floor. Use non-overlapping channels per floor:
+            Floor 1 = channel 1, Floor 2 = channel 6, Floor 3 = channel 11.
+
+    config CSI_FLOOR_ID
+        int "Floor ID (0-based)"
+        default 0
+        range 0 2
+        help
+            Floor identifier. 0 = Ground, 1 = Second, 2 = Third/Attic.
+
+    config CSI_MQTT_BROKER_IP
+        string "MQTT broker IP"
+        default "192.168.1.100"
+        help
+            IP address of the Raspberry Pi running Mosquitto.
+
+    config CSI_MQTT_BROKER_PORT
+        int "MQTT broker port"
+        default 1883
+        range 1 65535
+
+    config CSI_TX_RATE_HZ
+        int "TX frame rate (Hz)"
+        default 100
+        range 1 1000
+        help
+            UDP unicast transmission rate for TX boards.
+
+    config CSI_BOARD_ID
+        string "Board identifier"
+        default "board-01"
+        help
+            Human-readable board label for logging and debugging.
+
+    config CSI_TX_TARGET_IP
+        string "TX target IP (RX board or broadcast)"
+        default "255.255.255.255"
+        help
+            IP address that TX boards send UDP frames to.
+            Use broadcast (255.255.255.255) or a specific RX board IP.
+
+    config CSI_TX_UDP_PORT
+        int "TX UDP port"
+        default 5500
+        range 1 65535
+
+endmenu
