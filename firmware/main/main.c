@@ -25,6 +25,8 @@
 #include "lwip/sockets.h"
 #include "nvs_flash.h"
 
+#include <fcntl.h>
+#include <inttypes.h>
 #include <string.h>
 
 static const char *TAG = "csi_main";
@@ -102,48 +104,89 @@ static void wifi_init_sta(void) {
     ESP_LOGI(TAG, "WiFi connected");
 }
 
-/* ── TX mode: UDP frame sender ─────────────────────────────────────── */
+/* ── TX mode: UDP frame sender (esp_timer-based) ──────────────────── */
 
 #if BOARD_ROLE_TX
 
-/**
- * TX task: sends small UDP frames at TX_RATE_HZ to trigger CSI on RX boards.
- * The frame content doesn't matter — the RX boards extract CSI from
- * any received WiFi frame. We send a minimal payload.
- */
-static void tx_task(void *arg) {
-    struct sockaddr_in dest_addr = {
-        .sin_family = AF_INET,
-        .sin_port = htons(TX_UDP_PORT),
-    };
-    inet_aton(TX_TARGET_IP, &dest_addr.sin_addr);
+/** TX rate logging interval in seconds. */
+#define TX_LOG_INTERVAL_S  10
 
-    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (sock < 0) {
+/** State shared between timer callback and rate-logging task. */
+static int s_tx_sock = -1;
+static struct sockaddr_in s_tx_dest;
+static uint32_t s_tx_seq = 0;
+static volatile uint32_t s_tx_count = 0;       /* Packets sent since last log. */
+static volatile uint32_t s_tx_errors = 0;      /* Send errors since last log. */
+
+/**
+ * esp_timer callback — fires every TX_INTERVAL_US (10,000 µs for 100Hz).
+ * Runs in the esp_timer task context (not ISR), so lwIP sendto() is safe.
+ */
+static void tx_timer_callback(void *arg) {
+    s_tx_seq++;
+    int err = sendto(s_tx_sock, &s_tx_seq, sizeof(s_tx_seq), 0,
+                     (struct sockaddr *)&s_tx_dest, sizeof(s_tx_dest));
+    if (err < 0) {
+        s_tx_errors++;
+    } else {
+        s_tx_count++;
+    }
+}
+
+/**
+ * Rate-logging task: prints actual TX rate every TX_LOG_INTERVAL_S seconds.
+ */
+static void tx_rate_log_task(void *arg) {
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(TX_LOG_INTERVAL_S * 1000));
+        uint32_t sent = s_tx_count;
+        uint32_t errs = s_tx_errors;
+        s_tx_count = 0;
+        s_tx_errors = 0;
+        float rate = (float)sent / TX_LOG_INTERVAL_S;
+        ESP_LOGI(TAG, "TX rate: %.1f pps (sent=%"PRIu32" errors=%"PRIu32" seq=%"PRIu32")",
+                 rate, sent, errs, s_tx_seq);
+    }
+}
+
+/**
+ * Initialize TX mode: create UDP socket, start esp_timer, start rate logger.
+ */
+static void tx_start(void) {
+    /* Set up destination address. */
+    s_tx_dest.sin_family = AF_INET;
+    s_tx_dest.sin_port = htons(TX_UDP_PORT);
+    inet_aton(TX_TARGET_IP, &s_tx_dest.sin_addr);
+
+    /* Create non-blocking UDP socket. */
+    s_tx_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    if (s_tx_sock < 0) {
         ESP_LOGE(TAG, "Failed to create UDP socket: errno %d", errno);
-        vTaskDelete(NULL);
         return;
     }
 
     /* Enable broadcast if target is broadcast address. */
     int broadcast = 1;
-    setsockopt(sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
+    setsockopt(s_tx_sock, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof(broadcast));
 
-    /* Minimal payload — just a sequence counter. */
-    uint32_t seq = 0;
-    const TickType_t interval = pdMS_TO_TICKS(1000 / TX_RATE_HZ);
+    /* Make socket non-blocking so timer callback never stalls. */
+    int flags = fcntl(s_tx_sock, F_GETFL, 0);
+    fcntl(s_tx_sock, F_SETFL, flags | O_NONBLOCK);
 
-    ESP_LOGI(TAG, "TX task started: %d Hz to %s:%d", TX_RATE_HZ, TX_TARGET_IP, TX_UDP_PORT);
+    /* Create periodic esp_timer for precise TX interval. */
+    const esp_timer_create_args_t timer_args = {
+        .callback = tx_timer_callback,
+        .name = "tx_timer",
+    };
+    esp_timer_handle_t tx_timer;
+    ESP_ERROR_CHECK(esp_timer_create(&timer_args, &tx_timer));
+    ESP_ERROR_CHECK(esp_timer_start_periodic(tx_timer, TX_INTERVAL_US));
 
-    while (1) {
-        seq++;
-        int err = sendto(sock, &seq, sizeof(seq), 0,
-                         (struct sockaddr *)&dest_addr, sizeof(dest_addr));
-        if (err < 0) {
-            ESP_LOGD(TAG, "TX sendto failed: errno %d", errno);
-        }
-        vTaskDelay(interval);
-    }
+    ESP_LOGI(TAG, "TX timer started: %d Hz (%d µs) to %s:%d",
+             TX_RATE_HZ, TX_INTERVAL_US, TX_TARGET_IP, TX_UDP_PORT);
+
+    /* Start rate-logging task on core 0 (low priority). */
+    xTaskCreatePinnedToCore(tx_rate_log_task, "tx_log", 2048, NULL, 2, NULL, 0);
 }
 
 #endif /* BOARD_ROLE_TX */
@@ -207,9 +250,9 @@ void app_main(void) {
     xTaskCreatePinnedToCore(wifi_watchdog_task, "wifi_wd", 2048, NULL, 3, NULL, 0);
 
 #if BOARD_ROLE_TX
-    /* TX mode: just send UDP frames to trigger CSI on receivers. */
+    /* TX mode: start esp_timer-driven UDP sender. */
     ESP_LOGI(TAG, "Starting TX mode (%d Hz)", TX_RATE_HZ);
-    xTaskCreatePinnedToCore(tx_task, "tx_task", 4096, NULL, 5, NULL, 1);
+    tx_start();
 #else
     /* RX mode: initialize MQTT, then start CSI collection. */
     ESP_LOGI(TAG, "Starting RX mode (CSI → MQTT)");
