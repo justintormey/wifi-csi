@@ -1,0 +1,39 @@
+[Unit]
+Description=WiFi CSI People Tracking Backend
+Documentation=https://github.com/justintormey/wifi-csi
+After=network-online.target mosquitto.service
+Wants=network-online.target
+Requires=mosquitto.service
+
+[Service]
+Type=simple
+User=csi
+Group=csi
+WorkingDirectory=/opt/wifi-csi
+ExecStart=/opt/wifi-csi/venv/bin/python -m backend.main --host 0.0.0.0 --port 8000 --log-level INFO
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
+
+# Environment
+Environment=PYTHONUNBUFFERED=1
+
+# Resource limits — keep the RPi 4 healthy
+MemoryMax=512M
+CPUQuota=80%
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/wifi-csi/data
+PrivateTmp=true
+
+# Logging — journal captures stdout/stderr
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=wifi-csi
+
+[Install]
+WantedBy=multi-user.target

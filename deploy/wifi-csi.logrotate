@@ -1,0 +1,16 @@
+# Logrotate config for WiFi CSI backend.
+# Journal handles runtime logs; this covers any file-based logs or data exports.
+
+/opt/wifi-csi/data/logs/*.log {
+    daily
+    rotate 7
+    compress
+    delaycompress
+    missingok
+    notifempty
+    create 0640 csi csi
+    sharedscripts
+    postrotate
+        systemctl kill --signal=HUP wifi-csi-backend.service 2>/dev/null || true
+    endscript
+}
