@@ -3,6 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "serve": "npx http-server . -p 8088 -c-1 --cors -o",
     "test": "vitest run",
     "test:watch": "vitest"
   },

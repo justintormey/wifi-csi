@@ -449,6 +449,7 @@ function updateOccupancy(estimate, confidence) {
 // ── Signal Quality ───────────────────────────────────────────
 
 const ZONE_LABEL_MAP = {
+  // Floor 1
   garage: 'Garage',
   family_room: 'Family',
   kitchen: 'Kitchen',
@@ -457,6 +458,19 @@ const ZONE_LABEL_MAP = {
   utility: 'Utility',
   office: 'Office',
   parlor: 'Parlor',
+  // Floor 2
+  bedroom1: 'Bed #1',
+  bedroom2: 'Bed #2',
+  guest_bedroom: 'Guest',
+  master_bedroom: 'Master',
+  bathroom: 'Bath',
+  closet: 'Closet',
+  // Floor 3 (Basement)
+  workshop: 'Workshop',
+  bar_area: 'Bar',
+  art_studio: 'Studio',
+  recreation: 'Rec Area',
+  storage: 'Storage',
 };
 
 function updateSignalQuality(zoneQualities) {

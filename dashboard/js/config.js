@@ -16,12 +16,12 @@ export const CONFIG = {
     maxPersonCount: 4,
   },
 
-  // Floor definitions — Phase 1 focuses on floor 1 (1st Floor / main level)
+  // Floor definitions — all 3 floors of 14 Charleston Drive
+  // Coordinate system: meters from top-left origin. All floors share 18m × 10.5m footprint.
   floors: [
     {
       id: 1,
       name: '1st Floor',
-      // Coordinate system: meters from top-left origin
       width: 18.0,   // ~60 ft
       height: 10.5,  // ~35 ft
       svgPath: 'assets/floorplans/floor1.svg',
@@ -35,7 +35,6 @@ export const CONFIG = {
         office:       { x: 12.5,  y: 8.0,  w: 2.5,  h: 2.5,  label: 'Office' },
         parlor:       { x: 15.0,  y: 5.5,  w: 3.0,  h: 5.0,  label: 'Parlor' },
       },
-      // Waypoints: navigable points (doorways, room centers) for pathfinding
       waypoints: {
         garage_center:  { x: 2.75, y: 2.75, connections: ['garage_door'] },
         garage_door:    { x: 5.25, y: 2.75, connections: ['garage_center', 'family_center'] },
@@ -56,7 +55,6 @@ export const CONFIG = {
         parlor_door:    { x: 15.25,y: 7.0,  connections: ['hall_east', 'parlor_center'] },
         parlor_center:  { x: 16.5, y: 8.0,  connections: ['parlor_door'] },
       },
-      // Base signal quality per zone (modified by simulator noise)
       baseSignalQuality: {
         garage:      0.45,
         family_room: 0.85,
@@ -66,6 +64,87 @@ export const CONFIG = {
         utility:     0.60,
         office:      0.50,
         parlor:      0.48,
+      },
+    },
+    {
+      id: 2,
+      name: '2nd Floor',
+      width: 18.0,
+      height: 10.5,
+      svgPath: 'assets/floorplans/floor2.svg',
+      rooms: {
+        bedroom1:       { x: 0,     y: 0,    w: 5.5,  h: 5.5,  label: 'Bedroom #1' },
+        bedroom2:       { x: 5.5,   y: 0,    w: 5.0,  h: 5.5,  label: 'Bedroom #2' },
+        guest_bedroom:  { x: 10.5,  y: 0,    w: 7.5,  h: 5.5,  label: 'Guest Bedroom' },
+        hallway:        { x: 3.5,   y: 5.5,  w: 8.0,  h: 2.0,  label: 'Hallway' },
+        master_bedroom: { x: 0,     y: 5.5,  w: 3.5,  h: 5.0,  label: 'Master Bedroom' },
+        bathroom:       { x: 11.5,  y: 5.5,  w: 3.5,  h: 5.0,  label: 'Bathroom' },
+        closet:         { x: 15.0,  y: 5.5,  w: 3.0,  h: 5.0,  label: 'Closet' },
+      },
+      waypoints: {
+        bedroom1_center:  { x: 2.75, y: 2.75, connections: ['bedroom1_door'] },
+        bedroom1_door:    { x: 5.7,  y: 5.5,  connections: ['bedroom1_center', 'hall_west'] },
+        bedroom2_center:  { x: 8.0,  y: 2.75, connections: ['bedroom2_door'] },
+        bedroom2_door:    { x: 9.7,  y: 5.5,  connections: ['bedroom2_center', 'hall_east'] },
+        guest_center:     { x: 14.25,y: 2.75, connections: ['guest_door'] },
+        guest_door:       { x: 10.5, y: 2.75, connections: ['guest_center', 'bedroom2_center'] },
+        hall_west:        { x: 5.5,  y: 6.5,  connections: ['bedroom1_door', 'hall_mid', 'master_door'] },
+        hall_mid:         { x: 7.5,  y: 6.5,  connections: ['hall_west', 'hall_east'] },
+        hall_east:        { x: 10.0, y: 6.5,  connections: ['hall_mid', 'bedroom2_door', 'bathroom_door'] },
+        master_door:      { x: 3.5,  y: 6.7,  connections: ['hall_west', 'master_center'] },
+        master_center:    { x: 1.75, y: 8.0,  connections: ['master_door'] },
+        bathroom_door:    { x: 11.5, y: 6.7,  connections: ['hall_east', 'bathroom_center'] },
+        bathroom_center:  { x: 13.25,y: 8.0,  connections: ['bathroom_door', 'closet_door'] },
+        closet_door:      { x: 15.0, y: 7.7,  connections: ['bathroom_center', 'closet_center'] },
+        closet_center:    { x: 16.5, y: 8.0,  connections: ['closet_door'] },
+      },
+      baseSignalQuality: {
+        bedroom1:       0.65,
+        bedroom2:       0.75,
+        guest_bedroom:  0.55,
+        hallway:        0.85,
+        master_bedroom: 0.50,
+        bathroom:       0.45,
+        closet:         0.35,
+      },
+    },
+    {
+      id: 3,
+      name: 'Basement',
+      width: 18.0,
+      height: 10.5,
+      svgPath: 'assets/floorplans/floor3.svg',
+      rooms: {
+        workshop:   { x: 0,     y: 0,    w: 7.0,  h: 5.5,  label: 'Workshop' },
+        bar_area:   { x: 7.0,   y: 0,    w: 5.5,  h: 5.5,  label: 'Bar Area' },
+        art_studio: { x: 12.5,  y: 0,    w: 5.5,  h: 5.5,  label: 'Art Studio' },
+        hallway:    { x: 5.0,   y: 5.5,  w: 8.0,  h: 2.0,  label: 'Hallway' },
+        recreation: { x: 0,     y: 5.5,  w: 5.0,  h: 5.0,  label: 'Recreation Area' },
+        storage:    { x: 13.0,  y: 5.5,  w: 5.0,  h: 5.0,  label: 'Storage' },
+      },
+      waypoints: {
+        workshop_center:  { x: 3.5,  y: 2.75, connections: ['workshop_door'] },
+        workshop_door:    { x: 7.0,  y: 2.7,  connections: ['workshop_center', 'bar_center'] },
+        bar_center:       { x: 9.75, y: 2.75, connections: ['workshop_door', 'bar_hall', 'studio_door'] },
+        studio_door:      { x: 12.5, y: 2.7,  connections: ['bar_center', 'studio_center'] },
+        studio_center:    { x: 15.25,y: 2.75, connections: ['studio_door'] },
+        bar_hall:         { x: 7.0,  y: 5.5,  connections: ['bar_center', 'hall_west'] },
+        hall_west:        { x: 6.5,  y: 6.5,  connections: ['bar_hall', 'hall_mid', 'rec_door'] },
+        hall_mid:         { x: 9.0,  y: 6.5,  connections: ['hall_west', 'hall_east'] },
+        hall_east:        { x: 11.0, y: 6.5,  connections: ['hall_mid', 'studio_hall', 'storage_door'] },
+        studio_hall:      { x: 11.0, y: 5.5,  connections: ['studio_center', 'hall_east'] },
+        rec_door:         { x: 5.0,  y: 6.5,  connections: ['hall_west', 'rec_center'] },
+        rec_center:       { x: 2.5,  y: 8.0,  connections: ['rec_door'] },
+        storage_door:     { x: 13.0, y: 6.65, connections: ['hall_east', 'storage_center'] },
+        storage_center:   { x: 15.5, y: 8.0,  connections: ['storage_door'] },
+      },
+      baseSignalQuality: {
+        workshop:   0.55,
+        bar_area:   0.75,
+        art_studio: 0.50,
+        hallway:    0.82,
+        recreation: 0.60,
+        storage:    0.40,
       },
     },
   ],
