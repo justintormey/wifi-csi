@@ -19,6 +19,14 @@ import { CONFIG, DEMO_SCENARIOS } from './config.js';
 import { Simulator } from './simulator.js';
 import { WebSocketClient, bindStatusIndicator } from './websocket-client.js';
 
+// ── HTML escaping (XSS prevention) ──────────────────────────
+
+const _escapeMap = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+function esc(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, c => _escapeMap[c]);
+}
+
 // ── Application State ────────────────────────────────────────
 
 export const appState = {
@@ -77,7 +85,13 @@ async function loadFloorPlan(floorId) {
     const resp = await fetch(floor.svgPath);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const svgText = await resp.text();
-    dom.floorplanContainer.innerHTML = svgText;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(svgText, 'image/svg+xml');
+    const parsedSVG = doc.documentElement;
+    // Strip any embedded scripts from SVG
+    parsedSVG.querySelectorAll('script').forEach(s => s.remove());
+    dom.floorplanContainer.innerHTML = '';
+    dom.floorplanContainer.appendChild(document.importNode(parsedSVG, true));
     floorplanSVG = dom.floorplanContainer.querySelector('svg');
 
     if (floorplanSVG) {
@@ -381,11 +395,12 @@ function updateVitalsPanel(people) {
   }
 
   dom.vitalsList.innerHTML = people.map(person => {
+    const pid = esc(person.id);
     const color = PERSON_COLORS[person.id] || '#00fff7';
-    const room = findRoom(person.x, person.y);
+    const room = esc(findRoom(person.x, person.y));
     const activity = person.is_stationary ? 'stationary' : 'moving';
     const stationaryInfo = person.is_stationary && person.stationary_duration_s > 0
-      ? ` (${formatDuration(person.stationary_duration_s)})` : '';
+      ? ` (${esc(formatDuration(person.stationary_duration_s))})` : '';
 
     // Breathing
     const brConf = person.breathing?.confidence ?? 0;
@@ -404,17 +419,19 @@ function updateVitalsPanel(people) {
     }
 
     const posConf = Math.round((person.position_confidence ?? 0) * 100);
+    const xVal = typeof person.x === 'number' ? person.x.toFixed(1) : '?';
+    const yVal = typeof person.y === 'number' ? person.y.toFixed(1) : '?';
 
     return `
       <div class="person-card">
         <div class="person-card-header">
-          <span class="person-id" style="color:${color}">Target ${person.id.toUpperCase()}</span>
-          <span class="person-activity">${activity}${stationaryInfo}</span>
+          <span class="person-id" style="color:${esc(color)}">Target ${pid.toUpperCase()}</span>
+          <span class="person-activity">${esc(activity)}${stationaryInfo}</span>
         </div>
         <div class="person-location">${room || 'Unknown zone'}</div>
         <div class="position-info">
-          <span class="coord">X: <span class="val">${person.x.toFixed(1)}m</span></span>
-          <span class="coord">Y: <span class="val">${person.y.toFixed(1)}m</span></span>
+          <span class="coord">X: <span class="val">${esc(xVal)}m</span></span>
+          <span class="coord">Y: <span class="val">${esc(yVal)}m</span></span>
           <span class="coord">Conf: <span class="val">${posConf}%</span></span>
         </div>
         <div class="confidence-bar"><div class="confidence-bar-fill" style="width:${posConf}%"></div></div>
@@ -479,7 +496,7 @@ function updateSignalQuality(zoneQualities) {
   let html = '';
   for (const [zone, quality] of Object.entries(zoneQualities)) {
     const pct = Math.round(quality * 100);
-    const label = ZONE_LABEL_MAP[zone] || zone;
+    const label = esc(ZONE_LABEL_MAP[zone] || zone);
     let fillClass = 'good';
     if (quality < 0.5) fillClass = 'poor';
     else if (quality < 0.7) fillClass = 'fair';

@@ -17,6 +17,7 @@ Features:
 from __future__ import annotations
 
 import asyncio
+import collections
 import heapq
 import logging
 import time
@@ -70,7 +71,9 @@ class SensorMetrics:
     packets_malformed: int = 0
     last_seen: float = 0.0
     first_seen: float = 0.0
-    _recent_timestamps: list[float] = field(default_factory=list, repr=False)
+    _recent_timestamps: collections.deque = field(
+        default_factory=lambda: collections.deque(maxlen=500), repr=False
+    )
 
     # Sliding window for packets/sec calculation (last N wall-clock times)
     _RATE_WINDOW_S: float = 5.0
@@ -88,7 +91,7 @@ class SensorMetrics:
         return (len(self._recent_timestamps) - 1) / duration
 
     @property
-    def error_rate(self) -> float:
+    def malformed_rate(self) -> float:
         """Fraction of malformed packets (0.0–1.0)."""
         total = self.packets_total + self.packets_malformed
         if total == 0:
@@ -108,11 +111,8 @@ class SensorMetrics:
         self.last_seen = wall_time
         if self.first_seen == 0.0:
             self.first_seen = wall_time
-        # Trim rate window
+        # deque(maxlen=500) auto-evicts oldest entries
         self._recent_timestamps.append(wall_time)
-        cutoff = wall_time - self._RATE_WINDOW_S
-        while self._recent_timestamps and self._recent_timestamps[0] < cutoff:
-            self._recent_timestamps.pop(0)
 
     def record_malformed(self) -> None:
         """Record a malformed packet from this sensor."""
@@ -419,33 +419,31 @@ class MqttListener:
     # ── Internal ──────────────────────────────────────────────────
 
     def _enqueue(self, packet: CsiPacket) -> None:
-        """Put a packet on the async queue, dropping if full."""
+        """Put a packet on the async queue, dropping newest if full."""
         assert self._queue is not None
         try:
             self._queue.put_nowait(packet)
         except asyncio.QueueFull:
             self.packets_dropped += 1
-            # Discard oldest to make room
-            try:
-                self._queue.get_nowait()
-            except asyncio.QueueEmpty:
-                pass
-            try:
-                self._queue.put_nowait(packet)
-            except asyncio.QueueFull:
-                pass
+
+    # Maximum number of tracked sensors to prevent unbounded memory growth
+    _MAX_SENSORS: int = 256
 
     def _get_sensor_metrics(self, rx_mac: str, floor_id: int = 0) -> SensorMetrics:
-        """Get or create per-sensor metrics."""
+        """Get or create per-sensor metrics (capped at _MAX_SENSORS)."""
         if rx_mac not in self._sensor_metrics:
+            if len(self._sensor_metrics) >= self._MAX_SENSORS:
+                return SensorMetrics(rx_mac=rx_mac, floor_id=floor_id)
             self._sensor_metrics[rx_mac] = SensorMetrics(
                 rx_mac=rx_mac, floor_id=floor_id
             )
         return self._sensor_metrics[rx_mac]
 
     def _get_reorder_buffer(self, rx_mac: str) -> _SensorReorderBuffer:
-        """Get or create per-sensor reorder buffer."""
+        """Get or create per-sensor reorder buffer (capped at _MAX_SENSORS)."""
         if rx_mac not in self._reorder_buffers:
+            if len(self._reorder_buffers) >= self._MAX_SENSORS:
+                return _SensorReorderBuffer(window_us=self._reorder_window_us)
             self._reorder_buffers[rx_mac] = _SensorReorderBuffer(
                 window_us=self._reorder_window_us
             )

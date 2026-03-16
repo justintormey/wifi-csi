@@ -97,7 +97,7 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -193,7 +193,8 @@ async def ws_tracking(websocket: WebSocket, floors: Optional[str] = None):
         try:
             floor_filter = {int(f.strip()) for f in floors.split(",")}
         except ValueError:
-            pass
+            await websocket.close(code=1008, reason="Invalid floor filter")
+            return
 
     await _state.ws_manager.connect(websocket, floor_filter=floor_filter)
     try:

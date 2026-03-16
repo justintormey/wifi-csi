@@ -49,6 +49,9 @@ static const char *TAG = "csi_handler";
 /** Timestamp (us) of the last accepted CSI packet. */
 static int64_t s_last_accept_us = 0;
 
+/** Cached RX MAC address (set once at init, read in callback). */
+static uint8_t s_rx_mac[6] = {0};
+
 /* ── Ring buffer ──────────────────────────────────────────────────── */
 
 /**
@@ -58,9 +61,10 @@ static int64_t s_last_accept_us = 0;
  * Consumer: csi_publish_task (dedicated FreeRTOS task)
  *
  * head is written only by the producer; tail only by the consumer.
- * Both are read by both sides. On ESP32 (32-bit Xtensa), aligned
- * 32-bit reads/writes are atomic, so this is safe without locks
- * as long as we have exactly one producer and one consumer.
+ * Both are read by both sides. Memory barriers ensure data visibility
+ * across the dual-core ESP32-S3 (Xtensa LX7): the producer issues a
+ * full fence after writing data and before advancing head; the consumer
+ * issues a full fence after reading data and before advancing tail.
  */
 static uint8_t s_ring[CSI_RING_BUF_SIZE][CSI_PACKET_SIZE];
 static volatile uint32_t s_ring_head = 0;  /* next write slot  */
@@ -156,19 +160,20 @@ static void csi_rx_callback(void *ctx, wifi_csi_info_t *info) {
 
     uint8_t *slot = s_ring[s_ring_head];
 
-    uint8_t rx_mac[6];
-    esp_wifi_get_mac(WIFI_IF_STA, rx_mac);
-
     serialize_csi_packet(
         slot,
         (uint64_t)now_us,
         info->mac,
-        rx_mac,
+        s_rx_mac,  /* cached at init — no lock acquisition in callback */
         info->rx_ctrl.rssi,
         (uint8_t)FLOOR_ID,
         info->buf,
         info->len
     );
+
+    /* Full memory barrier: ensure all data writes to slot are visible
+     * to the consumer core before we advance the head index. */
+    __sync_synchronize();
 
     /* Publish head advance (atomic 32-bit write). */
     s_ring_head = ring_next(s_ring_head);
@@ -191,9 +196,17 @@ static void csi_publish_task(void *arg) {
             continue;
         }
 
+        /* Memory barrier: ensure we see the complete data written by the
+         * producer before we read from the slot. */
+        __sync_synchronize();
+
         const uint8_t *slot = s_ring[s_ring_tail];
         mqtt_client_publish_csi(slot, CSI_PACKET_SIZE);
         s_packets_published++;
+
+        /* Full memory barrier before advancing tail, so the producer
+         * does not overwrite this slot before we finish reading. */
+        __sync_synchronize();
 
         /* Advance tail (atomic 32-bit write). */
         s_ring_tail = ring_next(s_ring_tail);
@@ -214,6 +227,10 @@ static void csi_publish_task(void *arg) {
 /* ── Public API ────────────────────────────────────────────────────── */
 
 esp_err_t csi_handler_init(void) {
+    /* Cache the RX MAC address once — avoids calling esp_wifi_get_mac()
+     * (which acquires the WiFi internal lock) at 100Hz in the callback. */
+    esp_wifi_get_mac(WIFI_IF_STA, s_rx_mac);
+
     wifi_csi_config_t csi_config = {
         .lltf_en           = true,   /* L-LTF (legacy long training field) */
         .htltf_en          = true,   /* HT-LTF for HT40 subcarriers */
