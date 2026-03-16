@@ -47,6 +47,10 @@ function randRange(min, max) {
 }
 
 // ── Cloud Particle ─────────────────────────────────────────────
+// Fog-of-war aesthetic: translucent blobs drift within zone boundaries,
+// providing an intuitive visual that "this area has poor signal quality."
+// Particles bounce off zone walls to stay within their room's footprint.
+// Opacity scales with (1 - quality), so well-covered rooms are clear.
 
 class CloudParticle {
   constructor(zone) {
@@ -85,6 +89,10 @@ class CloudParticle {
 }
 
 // ── Ripple ──────────────────────────────────────────────────────
+// Expanding cyan rings spawn in noisy zones at a rate proportional to
+// (1-quality)^2 — the squaring makes ripples rare in moderate zones but
+// frequent in poor ones. Each ripple expands at 1.5 m/s and fades as
+// it grows, creating a radar-pulse aesthetic.
 
 class Ripple {
   constructor(x, y) {

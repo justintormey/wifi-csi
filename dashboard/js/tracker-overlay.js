@@ -58,6 +58,11 @@ function rgba(color, alpha) {
 }
 
 // ── Tracked Person State ───────────────────────────────────────
+// Each person smoothly interpolates position and confidence between
+// payload updates (10Hz) at animation frame rate (~60fps). This prevents
+// choppy movement on high-refresh displays. Trail points are only added
+// when movement exceeds 0.15m to avoid cluttering the display with
+// jitter-induced micro-movements.
 
 class TrackedPerson {
   constructor(id) {
@@ -258,8 +263,9 @@ export class TrackerOverlay {
     const ctx = this.ctx;
     ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
-    // Draw in order: trails → uncertainty circles → blobs → labels
-    // This layering ensures blobs sit on top of trails and circles
+    // Draw all instances of each layer before the next layer. This ensures
+    // blobs are never occluded by another person's trail or uncertainty circle.
+    // Order: trails (back) → uncertainty circles → blobs → labels (front)
 
     for (const person of this.people.values()) {
       this._drawTrail(ctx, person);

@@ -68,7 +68,14 @@ function dist(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
 }
 
-/** Smooth random drift using Ornstein-Uhlenbeck process */
+/**
+ * Smooth random drift using Ornstein-Uhlenbeck process.
+ * This is the core stochastic model for all continuous values in the simulator
+ * (breathing rate, heart rate, signal quality). It produces mean-reverting
+ * random walks — values drift naturally but always pull back toward a target,
+ * avoiding both jarring jumps (pure random) and artificial smoothness (pure lerp).
+ * theta = mean-reversion speed, sigma = volatility/noise amplitude.
+ */
 function ouStep(current, mean, theta, sigma, dt) {
   return current + theta * (mean - current) * dt + sigma * Math.sqrt(dt) * gaussRandom();
 }
@@ -84,6 +91,11 @@ function randRange(min, max) {
 }
 
 // ── Pathfinding (BFS on waypoint graph) ────────────────────────
+// BFS guarantees shortest path (fewest waypoints) on the unweighted graph.
+// This produces realistic room-to-room navigation through doorways rather
+// than straight-line teleportation. The waypoint graph must be fully
+// connected — disconnected subgraphs will cause the fallback direct path
+// which looks like teleportation.
 
 function findPath(waypoints, fromId, toId) {
   if (fromId === toId) return [fromId];
@@ -291,6 +303,10 @@ class SimulatedPerson {
     }
   }
 
+  // Vitals simulation mirrors the real system's constraints:
+  // - Breathing is always detectable (large chest displacement ~1-5mm)
+  // - Heart rate requires stillness + good SNR (tiny displacement ~0.1mm)
+  // - Confidence values model real-world degradation from motion and signal quality
   _tickVitals(dt) {
     const room = findRoomForPoint(this.floor.rooms, this.x, this.y);
     const zoneQuality = this.floor.baseSignalQuality[room] || 0.5;
@@ -325,7 +341,14 @@ class SimulatedPerson {
     }
   }
 
-  /** Generate the person payload for a WebSocket frame */
+  /**
+   * Generate the person payload for a WebSocket frame.
+   * Position confidence derives from zone signal quality, with a 25% penalty
+   * for moving targets (harder to localize). Uncertainty radius is inversely
+   * proportional to confidence: 0.5/conf meters, clamped to [0.5, 8.0].
+   * Heart rate display is gated by four conditions — the `display` boolean
+   * is the authoritative flag that UI consumers should check.
+   */
   toPayload(zoneQualities) {
     const room = findRoomForPoint(this.floor.rooms, this.x, this.y);
     const zoneQuality = zoneQualities[room] || 0.5;

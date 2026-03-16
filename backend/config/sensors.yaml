@@ -13,8 +13,8 @@ sensors:
     floor: 1
     channel: 1
     position:
-      x: 9.0    # center of family room / hallway junction
-      y: 4.0
+      x: 5.25   # center of family room
+      y: 7.25
     label: "Floor 1 TX (family room ceiling)"
 
   - mac: "aa:bb:cc:dd:01:01"
@@ -31,9 +31,9 @@ sensors:
     floor: 1
     channel: 1
     position:
-      x: 17.5
+      x: 10.0
       y: 0.5
-    label: "Floor 1 RX-B (kitchen corner)"
+    label: "Floor 1 RX-B (garage corner right)"
 
   - mac: "aa:bb:cc:dd:01:03"
     role: rx
@@ -41,8 +41,8 @@ sensors:
     channel: 1
     position:
       x: 0.5
-      y: 10.0
-    label: "Floor 1 RX-C (dining room corner)"
+      y: 17.5
+    label: "Floor 1 RX-C (parlor corner)"
 
   # ── Floor 2: 2nd Floor (Channel 6) ──
   - mac: "aa:bb:cc:dd:02:00"
@@ -50,7 +50,7 @@ sensors:
     floor: 2
     channel: 6
     position:
-      x: 9.0
+      x: 5.25
       y: 5.25
     label: "Floor 2 TX (hallway ceiling)"
 
@@ -68,9 +68,9 @@ sensors:
     floor: 2
     channel: 6
     position:
-      x: 17.5
+      x: 10.0
       y: 0.5
-    label: "Floor 2 RX-B (guest bedroom corner)"
+    label: "Floor 2 RX-B (bedroom 2 corner)"
 
   - mac: "aa:bb:cc:dd:02:03"
     role: rx
@@ -78,7 +78,7 @@ sensors:
     channel: 6
     position:
       x: 0.5
-      y: 10.0
+      y: 17.5
     label: "Floor 2 RX-C (master bedroom corner)"
 
   # ── Floor 3: Basement (Channel 11) ──
@@ -87,7 +87,7 @@ sensors:
     floor: 3
     channel: 11
     position:
-      x: 9.0
+      x: 5.25
       y: 5.25
     label: "Basement TX (hallway ceiling)"
 
@@ -98,16 +98,16 @@ sensors:
     position:
       x: 0.5
       y: 0.5
-    label: "Basement RX-A (workshop corner)"
+    label: "Basement RX-A (recreation area corner)"
 
   - mac: "aa:bb:cc:dd:03:02"
     role: rx
     floor: 3
     channel: 11
     position:
-      x: 17.5
+      x: 10.0
       y: 0.5
-    label: "Basement RX-B (art studio corner)"
+    label: "Basement RX-B (workshop corner)"
 
   - mac: "aa:bb:cc:dd:03:03"
     role: rx
@@ -115,8 +115,8 @@ sensors:
     channel: 11
     position:
       x: 0.5
-      y: 10.0
-    label: "Basement RX-C (recreation area corner)"
+      y: 17.5
+    label: "Basement RX-C (storage corner)"
 
 # MQTT topic pattern for CSI data.
 # Each RX board publishes to: csi/{floor_id}/{rx_mac}
