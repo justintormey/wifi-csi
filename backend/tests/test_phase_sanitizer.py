@@ -148,3 +148,9 @@ class TestSanitizePhaseBatch:
         ])
         sanitized = sanitize_phase_batch(phases, subcarrier_indices=k)
         np.testing.assert_allclose(sanitized, 0.0, atol=1e-10)
+
+    def test_single_subcarrier_batch(self):
+        """Batch with single subcarrier (n < 2) should return copy unchanged."""
+        phases = np.array([[1.5], [2.3], [0.7]])
+        sanitized = sanitize_phase_batch(phases)
+        np.testing.assert_array_equal(sanitized, phases)

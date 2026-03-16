@@ -214,3 +214,31 @@ class TestValidation:
     def test_rejects_zero_subcarriers(self):
         with pytest.raises(ValueError, match="non-empty"):
             extract_features(np.zeros((100, 0)), np.zeros((100, 0)))
+
+
+# ── Zero-input edge cases ───────────────────────────────────────────────
+
+
+class TestZeroInputEdgeCases:
+    """Test degenerate inputs that exercise zero-norm and zero-std paths."""
+
+    def test_all_zero_input_l2(self):
+        """All-zero amplitudes and phases → zero feature vector → L2 returns unchanged."""
+        amp = np.zeros((100, 5))
+        phase = np.zeros((100, 5))
+        result = extract_features(amp, phase, norm="l2")
+        # All features (mean, var, mean_phase, std_phase) are 0
+        np.testing.assert_array_equal(result.vector, 0.0)
+        assert not np.any(np.isnan(result.vector))
+
+    def test_uniform_features_zscore(self):
+        """Features with zero std → zscore returns zero-centered (all equal → all zero)."""
+        # Constant amp & phase → mean_amp=C, var_amp=0, mean_phase=C2, std_phase=0
+        # With 1 subcarrier: vector=[C, 0, C2, 0], std may or may not be 0
+        # All zero: vector=[0,0,0,0], std=0
+        amp = np.zeros((100, 3))
+        phase = np.zeros((100, 3))
+        result = extract_features(amp, phase, norm="zscore")
+        assert not np.any(np.isnan(result.vector))
+        # All features are 0 → after zscore with zero std, result should be 0
+        np.testing.assert_allclose(result.vector, 0.0, atol=1e-12)

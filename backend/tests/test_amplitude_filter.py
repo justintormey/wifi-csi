@@ -11,6 +11,9 @@ from backend.processor.amplitude_filter import (
     bandpass_heartrate,
     bandpass_movement,
     butterworth_bandpass,
+    filter_breathing,
+    filter_heartrate,
+    filter_pipeline,
     hampel_filter,
     hampel_filter_2d,
 )
@@ -191,3 +194,106 @@ class TestHampelFilter2D:
     def test_rejects_1d_input(self):
         with pytest.raises(ValueError, match="2-D"):
             hampel_filter_2d(np.zeros(100))
+
+
+# ── Filter pipeline tests ─────────────────────────────────────────────
+
+
+class TestFilterPipeline:
+    """Test the combined Hampel + bandpass pipeline."""
+
+    def test_1d_pipeline_removes_spikes_and_filters(self):
+        """Pipeline should remove outliers then bandpass-filter."""
+        fs = 100.0
+        duration = 30.0
+        t = np.arange(0, duration, 1.0 / fs)
+        # 0.3 Hz breathing signal + injected spikes
+        sig = np.sin(2 * np.pi * 0.3 * t)
+        sig[500] = 50.0
+        sig[1500] = -50.0
+
+        result = filter_pipeline(sig, fs, 0.1, 0.5)
+
+        # Spikes should be gone, signal shape preserved
+        assert np.max(np.abs(result)) < 2.0
+        dominant = _dominant_freq(result[200:-200], fs)
+        assert abs(dominant - 0.3) < 0.05
+
+    def test_2d_pipeline(self):
+        """Pipeline should handle 2-D input (Hampel per-column, then bandpass)."""
+        fs = 100.0
+        duration = 30.0
+        t = np.arange(0, duration, 1.0 / fs)
+        col1 = np.sin(2 * np.pi * 1.0 * t)
+        col2 = np.sin(2 * np.pi * 2.0 * t)
+        data = np.column_stack([col1, col2])
+        # Inject spike in col 0
+        data[300, 0] = 100.0
+
+        result = filter_pipeline(data, fs, 0.5, 5.0)
+
+        assert result.shape == data.shape
+        assert np.max(np.abs(result)) < 3.0
+
+    def test_pipeline_rejects_3d(self):
+        """3-D input should raise ValueError."""
+        with pytest.raises(ValueError):
+            filter_pipeline(np.zeros((10, 3, 2)), 100.0, 0.5, 5.0)
+
+
+class TestFilterBreathing:
+    """Test the full breathing pipeline (Hampel + breathing band)."""
+
+    def test_isolates_breathing_frequency(self):
+        """A 0.3 Hz signal with spikes should come through clean."""
+        fs = 100.0
+        duration = 60.0
+        t = np.arange(0, duration, 1.0 / fs)
+        sig = np.sin(2 * np.pi * 0.3 * t)
+        sig[1000] = 40.0  # spike
+
+        result = filter_breathing(sig, fs)
+
+        dominant = _dominant_freq(result[500:-500], fs)
+        assert abs(dominant - 0.3) < 0.05
+        assert np.max(np.abs(result)) < 2.0
+
+    def test_2d_breathing(self):
+        """2-D input should work for multi-subcarrier breathing extraction."""
+        fs = 100.0
+        t = np.arange(0, 60.0, 1.0 / fs)
+        data = np.column_stack([
+            np.sin(2 * np.pi * 0.25 * t),
+            np.sin(2 * np.pi * 0.35 * t),
+        ])
+        result = filter_breathing(data, fs)
+        assert result.shape == data.shape
+
+
+class TestFilterHeartrate:
+    """Test the full heartrate pipeline (Hampel + heartrate band)."""
+
+    def test_isolates_heartrate_frequency(self):
+        """A 1.2 Hz signal with spikes should come through clean."""
+        fs = 100.0
+        duration = 60.0
+        t = np.arange(0, duration, 1.0 / fs)
+        sig = np.sin(2 * np.pi * 1.2 * t)
+        sig[800] = 30.0  # spike
+
+        result = filter_heartrate(sig, fs)
+
+        dominant = _dominant_freq(result[500:-500], fs)
+        assert abs(dominant - 1.2) < 0.1
+        assert np.max(np.abs(result)) < 2.0
+
+    def test_2d_heartrate(self):
+        """2-D input should work for multi-subcarrier heartrate extraction."""
+        fs = 100.0
+        t = np.arange(0, 60.0, 1.0 / fs)
+        data = np.column_stack([
+            np.sin(2 * np.pi * 1.0 * t),
+            np.sin(2 * np.pi * 1.5 * t),
+        ])
+        result = filter_heartrate(data, fs)
+        assert result.shape == data.shape
