@@ -192,6 +192,32 @@ class TestFixtureReplay:
         assert 0 <= person.breathing.rate_bpm <= 60
         assert 0.0 <= person.breathing.confidence <= 1.0
 
+    def test_fixture_expected_amplitude_ranges(self, sample_fixtures, house_config):
+        """Fixture packets produce amplitudes within their annotated expected ranges."""
+        for entry in sample_fixtures["packets"]:
+            expected = entry["expected"]
+            amp_lo, amp_hi = expected["amplitude_mean_range"]
+            mid_amplitude = (amp_lo + amp_hi) / 2.0
+
+            packet = _make_packet(
+                floor_id=expected["floor"],
+                timestamp_us=entry["timestamp_us"],
+                tx_mac=entry["tx_mac"],
+                rx_mac=entry["rx_mac"],
+                rssi=entry["rssi"],
+                base_amplitude=mid_amplitude,
+            )
+
+            amp = np.array(packet.amplitude_array)
+            mean_amp = float(np.mean(amp))
+
+            # Mean amplitude should be within ±20% of the fixture's expected range
+            tolerance = (amp_hi - amp_lo) * 0.5 + 5.0
+            assert amp_lo - tolerance <= mean_amp <= amp_hi + tolerance, (
+                f"Fixture '{entry['label']}': mean amplitude {mean_amp:.1f} "
+                f"outside expected range [{amp_lo - tolerance:.1f}, {amp_hi + tolerance:.1f}]"
+            )
+
     def test_replay_binary_roundtrip(self):
         """Packets survive binary serialization → deserialization."""
         original = _make_packet(floor_id=2, timestamp_us=123456)
@@ -599,6 +625,47 @@ class TestSustainedOperation:
         assert len(fp1._phase_buffer) <= 200
 
         await pipeline.stop()
+
+    def test_sustained_high_volume(self, house_config):
+        """Simulate 10 minutes of data (60,000 frames at 100Hz) fed rapidly.
+
+        Validates that the pipeline remains stable, buffers stay bounded,
+        and output remains valid after processing a large volume of data.
+        """
+        fp = FloorPipeline(floor_id=1, house_config=house_config)
+        total_frames = 60_000  # 10 min × 60 s × 100 Hz
+
+        for i in range(total_frames):
+            pkt = _make_packet(
+                floor_id=1,
+                timestamp_us=i * 10000,
+                breathing_freq=0.25,
+                seed=i % 10000,  # cycle seeds to avoid memory issues
+            )
+            fp.process_packet(pkt)
+
+        assert fp._frame_count == total_frames
+
+        # Buffers must stay bounded
+        assert len(fp._amplitude_buffer) <= 200
+        assert len(fp._phase_buffer) <= 200
+
+        # Output must still be valid
+        frame = fp.build_tracking_frame()
+        assert isinstance(frame, TrackingFrame)
+        assert frame.floor == 1
+        assert 0 <= frame.occupancy_estimate <= 6
+        assert len(frame.people) >= 1
+
+        # Vitals should still be producing data
+        person = frame.people[0]
+        assert 0 <= person.breathing.rate_bpm <= 60
+        assert 0.0 <= person.breathing.confidence <= 1.0
+        assert person.heartrate is not None
+
+        # Pydantic round-trip validates all fields
+        revalidated = TrackingFrame.model_validate(frame.model_dump())
+        assert revalidated.floor == frame.floor
 
     def test_tracking_frame_values_in_valid_ranges(self, house_config):
         """All TrackingFrame values stay within Pydantic-validated ranges."""
