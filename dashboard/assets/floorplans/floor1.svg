@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1800" class="floorplan" data-floor="1">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1050" class="floorplan" data-floor="1">
   <defs>
     <pattern id="grid1" width="100" height="100" patternUnits="userSpaceOnUse">
       <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(0,255,255,0.04)" stroke-width="0.5"/>
@@ -6,126 +6,151 @@
   </defs>
 
   <!-- Background grid -->
-  <rect width="1050" height="1800" fill="url(#grid1)" class="floor-bg"/>
+  <rect width="1800" height="1050" fill="url(#grid1)" class="floor-bg"/>
 
   <!-- ═══ Rooms ═══ -->
   <g class="rooms">
-    <!-- Garage: top, full width -->
-    <rect x="0" y="0" width="1050" height="550" class="room room-garage" data-room="garage"/>
-    <!-- Family Room: below garage, full width -->
-    <rect x="0" y="550" width="1050" height="350" class="room" data-room="family_room"/>
-    <!-- Dining Room: left side -->
-    <rect x="0" y="900" width="550" height="400" class="room" data-room="dining"/>
-    <!-- Kitchen: right of dining, shorter -->
-    <rect x="550" y="900" width="500" height="250" class="room" data-room="kitchen"/>
-    <!-- Utility: small room, right side -->
-    <rect x="800" y="1150" width="250" height="200" class="room" data-room="utility"/>
-    <!-- Hallway: central corridor near stairwell -->
-    <rect x="350" y="1300" width="450" height="150" class="room room-hallway" data-room="hallway"/>
-    <!-- Parlor: bottom-left -->
-    <rect x="0" y="1300" width="400" height="500" class="room" data-room="parlor"/>
-    <!-- Office: bottom-right -->
-    <rect x="550" y="1350" width="500" height="450" class="room" data-room="office"/>
+    <!-- Parlor: upper-left (front of house) -->
+    <rect x="0" y="0" width="450" height="450" class="room" data-room="parlor"/>
+    <!-- Office: lower-left -->
+    <rect x="0" y="550" width="450" height="500" class="room" data-room="office"/>
+    <!-- Hallway: central corridor around stairwell -->
+    <rect x="450" y="350" width="150" height="300" class="room room-hallway" data-room="hallway"/>
+    <!-- Utility: small room, below hallway -->
+    <rect x="450" y="650" width="150" height="200" class="room" data-room="utility"/>
+    <!-- Dining Room: upper-center -->
+    <rect x="600" y="0" width="350" height="550" class="room" data-room="dining"/>
+    <!-- Kitchen: lower-center -->
+    <rect x="600" y="550" width="300" height="500" class="room" data-room="kitchen"/>
+    <!-- Family Room: main body (center-right, full height) -->
+    <rect x="950" y="0" width="350" height="1050" class="room" data-room="family_room"/>
+    <!-- Family Room: upper extension beside garage -->
+    <rect x="1300" y="0" width="500" height="350" class="room" data-room="family_room"/>
+    <!-- Garage: right side, NOT full height (~65%) -->
+    <rect x="1300" y="350" width="500" height="700" class="room room-garage" data-room="garage"/>
   </g>
 
   <!-- ═══ Walls (exterior) ═══ -->
   <g class="walls">
-    <line x1="0" y1="0" x2="1050" y2="0" class="wall wall-exterior"/>
-    <line x1="0" y1="0" x2="0" y2="1800" class="wall wall-exterior"/>
-    <line x1="0" y1="1800" x2="1050" y2="1800" class="wall wall-exterior"/>
-    <line x1="1050" y1="0" x2="1050" y2="1800" class="wall wall-exterior"/>
+    <!-- Top wall with front entrance notch near Parlor/Hallway -->
+    <line x1="0" y1="0" x2="400" y2="0" class="wall wall-exterior"/>
+    <!-- Front entrance notch -->
+    <line x1="400" y1="0" x2="400" y2="80" class="wall wall-exterior"/>
+    <line x1="400" y1="80" x2="500" y2="80" class="wall wall-exterior"/>
+    <line x1="500" y1="80" x2="500" y2="0" class="wall wall-exterior"/>
+    <!-- Top wall continues -->
+    <line x1="500" y1="0" x2="1800" y2="0" class="wall wall-exterior"/>
+    <!-- Right wall -->
+    <line x1="1800" y1="0" x2="1800" y2="1050" class="wall wall-exterior"/>
+    <!-- Bottom wall -->
+    <line x1="0" y1="1050" x2="1800" y2="1050" class="wall wall-exterior"/>
+    <!-- Left wall -->
+    <line x1="0" y1="0" x2="0" y2="1050" class="wall wall-exterior"/>
 
-    <!-- Interior walls -->
-    <!-- Garage / Family Room (y=550) -->
-    <line x1="0" y1="550" x2="350" y2="550" class="wall wall-interior"/>
-    <line x1="550" y1="550" x2="1050" y2="550" class="wall wall-interior"/>
-    <!-- Family Room / lower section (y=900) -->
-    <line x1="0" y1="900" x2="200" y2="900" class="wall wall-interior"/>
-    <line x1="350" y1="900" x2="500" y2="900" class="wall wall-interior"/>
-    <line x1="650" y1="900" x2="1050" y2="900" class="wall wall-interior"/>
-    <!-- Dining / Kitchen divider (x=550) -->
-    <line x1="550" y1="900" x2="550" y2="1150" class="wall wall-interior"/>
-    <!-- Kitchen bottom (y=1150) -->
-    <line x1="550" y1="1150" x2="800" y2="1150" class="wall wall-interior"/>
-    <!-- Utility walls -->
-    <line x1="800" y1="1150" x2="800" y2="1350" class="wall wall-interior"/>
-    <line x1="800" y1="1350" x2="1050" y2="1350" class="wall wall-interior"/>
-    <!-- Hallway south wall (y=1450) -->
-    <line x1="350" y1="1450" x2="800" y2="1450" class="wall wall-interior"/>
-    <!-- Dining south wall (y=1300) -->
-    <line x1="0" y1="1300" x2="350" y2="1300" class="wall wall-interior"/>
-    <!-- Parlor east wall (x=400) -->
-    <line x1="400" y1="1300" x2="400" y2="1800" class="wall wall-interior"/>
-    <!-- Hallway / Parlor divider -->
-    <line x1="350" y1="1300" x2="400" y2="1300" class="wall wall-interior"/>
-    <!-- Office west wall (x=550) -->
-    <line x1="550" y1="1350" x2="550" y2="1800" class="wall wall-interior"/>
-    <!-- Hallway to office gap -->
-    <line x1="400" y1="1300" x2="550" y2="1300" class="wall wall-interior"/>
+    <!-- ── Interior walls ── -->
+
+    <!-- Parlor south wall (y=450) -->
+    <line x1="0" y1="450" x2="300" y2="450" class="wall wall-interior"/>
+    <line x1="400" y1="450" x2="450" y2="450" class="wall wall-interior"/>
+
+    <!-- Office north wall (y=550) -->
+    <line x1="0" y1="550" x2="300" y2="550" class="wall wall-interior"/>
+    <line x1="400" y1="550" x2="450" y2="550" class="wall wall-interior"/>
+
+    <!-- Parlor/Office east wall (x=450) -->
+    <line x1="450" y1="0" x2="450" y2="350" class="wall wall-interior"/>
+    <line x1="450" y1="650" x2="450" y2="1050" class="wall wall-interior"/>
+
+    <!-- Hallway/Utility divider (y=650) -->
+    <line x1="450" y1="650" x2="600" y2="650" class="wall wall-interior"/>
+
+    <!-- Utility south wall (y=850) -->
+    <line x1="450" y1="850" x2="600" y2="850" class="wall wall-interior"/>
+
+    <!-- Dining/Kitchen column east wall (x=600) -->
+    <line x1="600" y1="0" x2="600" y2="350" class="wall wall-interior"/>
+    <line x1="600" y1="500" x2="600" y2="550" class="wall wall-interior"/>
+    <line x1="600" y1="550" x2="600" y2="1050" class="wall wall-interior"/>
+
+    <!-- Dining/Kitchen divider (y=550) -->
+    <line x1="600" y1="550" x2="950" y2="550" class="wall wall-interior"/>
+
+    <!-- Dining/Kitchen east wall (x=950) — Family Room boundary -->
+    <line x1="950" y1="0" x2="950" y2="300" class="wall wall-interior"/>
+    <line x1="950" y1="450" x2="950" y2="550" class="wall wall-interior"/>
+    <line x1="950" y1="700" x2="950" y2="1050" class="wall wall-interior"/>
+
+    <!-- Garage / Family Room divider (y=350 from x=1300 to x=1800) -->
+    <line x1="1300" y1="350" x2="1500" y2="350" class="wall wall-interior"/>
+    <line x1="1650" y1="350" x2="1800" y2="350" class="wall wall-interior"/>
+
+    <!-- Family Room / Garage west wall at extension (x=1300) -->
+    <line x1="1300" y1="350" x2="1300" y2="1050" class="wall wall-interior"/>
 
     <!-- Stairwell area -->
-    <rect x="450" y="1310" width="180" height="130" class="stairwell" data-stairwell="up"/>
+    <rect x="460" y="380" width="130" height="180" class="stairwell" data-stairwell="up"/>
   </g>
 
   <!-- ═══ Doors ═══ -->
   <g class="doors">
-    <!-- Garage → Family Room -->
-    <line x1="350" y1="550" x2="550" y2="550" class="door"/>
-    <!-- Family Room → Dining Room -->
-    <line x1="200" y1="900" x2="350" y2="900" class="door"/>
-    <!-- Family Room → Kitchen -->
-    <line x1="500" y1="900" x2="650" y2="900" class="door"/>
-    <!-- Kitchen → Utility area -->
-    <line x1="800" y1="1160" x2="800" y2="1290" class="door"/>
-    <!-- Hallway → Parlor -->
-    <line x1="350" y1="1380" x2="350" y2="1440" class="door"/>
-    <!-- Hallway → Office -->
-    <line x1="550" y1="1360" x2="550" y2="1340" class="door"/>
-    <!-- Parlor exterior door (left wall) -->
-    <line x1="0" y1="1500" x2="0" y2="1650" class="door door-exterior"/>
-    <!-- Garage door (top wall) -->
-    <line x1="250" y1="0" x2="600" y2="0" class="door door-garage"/>
+    <!-- Parlor → Hallway (gap in Parlor south wall) -->
+    <line x1="300" y1="450" x2="400" y2="450" class="door"/>
+    <!-- Office → Hallway (gap in Office north wall) -->
+    <line x1="300" y1="550" x2="400" y2="550" class="door"/>
+    <!-- Hallway → Dining (gap in x=600 wall) -->
+    <line x1="600" y1="350" x2="600" y2="500" class="door"/>
+    <!-- Dining → Family Room (gap in x=950 wall) -->
+    <line x1="950" y1="300" x2="950" y2="450" class="door"/>
+    <!-- Kitchen → Family Room (gap in x=950 wall) -->
+    <line x1="950" y1="550" x2="950" y2="700" class="door"/>
+    <!-- Garage → Family Room (gap in y=350 wall) -->
+    <line x1="1500" y1="350" x2="1650" y2="350" class="door"/>
+    <!-- Front door (Parlor, top wall notch) -->
+    <line x1="420" y1="0" x2="480" y2="0" class="door door-exterior"/>
+    <!-- Garage door (right wall) -->
+    <line x1="1800" y1="550" x2="1800" y2="850" class="door door-garage"/>
   </g>
 
   <!-- ═══ Windows ═══ -->
   <g class="windows">
-    <!-- Garage windows (left + right) -->
+    <!-- Parlor windows (top + left) -->
+    <line x1="100" y1="0" x2="300" y2="0" class="window"/>
     <line x1="0" y1="100" x2="0" y2="300" class="window"/>
-    <line x1="1050" y1="100" x2="1050" y2="300" class="window"/>
-    <!-- Family room windows (left + right) -->
-    <line x1="0" y1="600" x2="0" y2="800" class="window"/>
-    <line x1="1050" y1="600" x2="1050" y2="800" class="window"/>
-    <!-- Dining room windows (left) -->
-    <line x1="0" y1="950" x2="0" y2="1150" class="window"/>
-    <!-- Kitchen windows (right) -->
-    <line x1="1050" y1="950" x2="1050" y2="1100" class="window"/>
-    <!-- Parlor windows (left + bottom) -->
-    <line x1="0" y1="1400" x2="0" y2="1500" class="window"/>
-    <line x1="50" y1="1800" x2="250" y2="1800" class="window"/>
-    <!-- Office windows (right + bottom) -->
-    <line x1="1050" y1="1450" x2="1050" y2="1650" class="window"/>
-    <line x1="700" y1="1800" x2="900" y2="1800" class="window"/>
+    <!-- Office windows (left + bottom) -->
+    <line x1="0" y1="650" x2="0" y2="850" class="window"/>
+    <line x1="100" y1="1050" x2="300" y2="1050" class="window"/>
+    <!-- Dining windows (top) -->
+    <line x1="650" y1="0" x2="850" y2="0" class="window"/>
+    <!-- Kitchen windows (bottom) -->
+    <line x1="650" y1="1050" x2="850" y2="1050" class="window"/>
+    <!-- Family Room windows (top + bottom) -->
+    <line x1="1000" y1="0" x2="1200" y2="0" class="window"/>
+    <line x1="1000" y1="1050" x2="1200" y2="1050" class="window"/>
+    <!-- Garage windows (top + right) -->
+    <line x1="1400" y1="0" x2="1550" y2="0" class="window"/>
+    <line x1="1800" y1="400" x2="1800" y2="530" class="window"/>
+    <line x1="1800" y1="870" x2="1800" y2="1000" class="window"/>
   </g>
 
   <!-- ═══ Room Labels ═══ -->
   <g class="room-labels">
-    <text x="525" y="280" class="label">Garage</text>
-    <text x="525" y="725" class="label">Family Room</text>
-    <text x="275" y="1100" class="label">Dining Room</text>
-    <text x="800" y="1030" class="label label-small">Kitchen</text>
-    <text x="925" y="1250" class="label label-tiny">Utility</text>
-    <text x="575" y="1380" class="label label-tiny">▲ UP</text>
-    <text x="200" y="1550" class="label">Parlor</text>
-    <text x="800" y="1580" class="label">Office</text>
+    <text x="225" y="230" class="label">Parlor</text>
+    <text x="225" y="800" class="label">Office</text>
+    <text x="525" y="510" class="label label-tiny">▲ UP</text>
+    <text x="525" y="770" class="label label-tiny">Utility</text>
+    <text x="775" y="280" class="label">Dining Room</text>
+    <text x="750" y="800" class="label label-small">Kitchen</text>
+    <text x="1125" y="525" class="label">Family Room</text>
+    <text x="1550" y="700" class="label">Garage</text>
   </g>
 
   <!-- ═══ Sensor positions ═══ -->
   <g class="sensors">
-    <!-- TX (ceiling center of family room) -->
-    <circle cx="525" cy="725" r="8" class="sensor sensor-tx"/>
-    <!-- RX units (corners) -->
+    <!-- TX (ceiling center of family room main body) -->
+    <circle cx="1125" cy="525" r="8" class="sensor sensor-tx"/>
+    <!-- RX units (corners of the house) -->
     <circle cx="50" cy="50" r="6" class="sensor sensor-rx"/>
-    <circle cx="1000" cy="50" r="6" class="sensor sensor-rx"/>
-    <circle cx="50" cy="1750" r="6" class="sensor sensor-rx"/>
+    <circle cx="1750" cy="50" r="6" class="sensor sensor-rx"/>
+    <circle cx="50" cy="1000" r="6" class="sensor sensor-rx"/>
   </g>
 </svg>

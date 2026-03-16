@@ -4,13 +4,15 @@
  * Based on actual floor plans of 14 Charleston Drive.
  *
  * Coordinate system: meters from top-left origin.
- * House is portrait-oriented: ~10.5m wide × 18.0m deep.
- * SVG viewBox: 1050 × 1800 (100px = 1 meter).
+ * House is landscape-oriented: ~18.0m wide × 10.5m deep.
+ * SVG viewBox: 1800 × 1050 (100px = 1 meter).
  */
 
 export const CONFIG = {
-  // WebSocket endpoint (backend or simulator)
-  wsUrl: 'ws://localhost:8000/ws/tracking',
+  // WebSocket endpoint — auto-detects protocol from page (wss:// on HTTPS, ws:// on HTTP)
+  wsUrl: typeof location !== 'undefined'
+    ? `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/ws/tracking`
+    : 'ws://localhost:8000/ws/tracking',
 
   // Simulation defaults
   simulation: {
@@ -22,39 +24,43 @@ export const CONFIG = {
 
   // Floor definitions — all 3 floors of 14 Charleston Drive
   // Coordinate system: meters from top-left origin.
-  // All floors share same footprint: 10.5m wide × 18.0m deep (portrait).
+  // All floors share same footprint: 18.0m wide × 10.5m deep (landscape).
+  //
+  // Room order matters for findRoom() — it returns the first bounding-box match.
+  // For L-shaped rooms (e.g. Family Room wrapping around Garage), define the
+  // inner room first so it matches before the outer room's larger bounding box.
   floors: [
     {
       id: 1,
       name: '1st Floor',
-      width: 10.5,
-      height: 18.0,
+      width: 18.0,
+      height: 10.5,
       svgPath: 'assets/floorplans/floor1.svg',
       rooms: {
-        garage:       { x: 0,    y: 0,    w: 10.5, h: 5.5,  label: 'Garage' },
-        family_room:  { x: 0,    y: 5.5,  w: 10.5, h: 3.5,  label: 'Family Room' },
-        dining:       { x: 0,    y: 9.0,  w: 5.5,  h: 4.0,  label: 'Dining Room' },
-        kitchen:      { x: 5.5,  y: 9.0,  w: 5.0,  h: 2.5,  label: 'Kitchen' },
-        utility:      { x: 8.0,  y: 11.5, w: 2.5,  h: 2.0,  label: 'Utility' },
-        hallway:      { x: 3.5,  y: 13.0, w: 4.5,  h: 1.5,  label: 'Hallway' },
-        parlor:       { x: 0,    y: 13.0, w: 4.0,  h: 5.0,  label: 'Parlor' },
-        office:       { x: 5.5,  y: 13.5, w: 5.0,  h: 4.5,  label: 'Office' },
+        parlor:       { x: 0,    y: 0,    w: 4.5,  h: 4.5,   label: 'Parlor' },
+        office:       { x: 0,    y: 5.5,  w: 4.5,  h: 5.0,   label: 'Office' },
+        hallway:      { x: 4.5,  y: 3.5,  w: 1.5,  h: 3.0,   label: 'Hallway' },
+        utility:      { x: 4.5,  y: 6.5,  w: 1.5,  h: 2.0,   label: 'Utility' },
+        dining:       { x: 6.0,  y: 0,    w: 3.5,  h: 5.5,   label: 'Dining Room' },
+        kitchen:      { x: 6.0,  y: 5.5,  w: 3.0,  h: 5.0,   label: 'Kitchen' },
+        garage:       { x: 13.0, y: 3.5,  w: 5.0,  h: 7.0,   label: 'Garage' },
+        family_room:  { x: 9.5,  y: 0,    w: 3.5,  h: 10.5,  label: 'Family Room' },
       },
       waypoints: {
-        garage_center:  { x: 5.25, y: 2.75,  connections: ['garage_door'] },
-        garage_door:    { x: 5.25, y: 5.25,  connections: ['garage_center', 'family_center'] },
-        family_center:  { x: 5.25, y: 7.25,  connections: ['garage_door', 'dining_door', 'kitchen_door', 'hall_mid'] },
-        dining_door:    { x: 2.75, y: 9.25,  connections: ['family_center', 'dining_center'] },
-        dining_center:  { x: 2.75, y: 11.0,  connections: ['dining_door'] },
-        kitchen_door:   { x: 7.75, y: 9.25,  connections: ['family_center', 'kitchen_center'] },
-        kitchen_center: { x: 7.75, y: 10.25, connections: ['kitchen_door', 'utility_door'] },
-        utility_door:   { x: 8.5,  y: 11.5,  connections: ['kitchen_center', 'utility_center', 'hall_mid'] },
-        utility_center: { x: 9.25, y: 12.5,  connections: ['utility_door'] },
-        hall_mid:       { x: 5.75, y: 13.5,  connections: ['family_center', 'utility_door', 'parlor_door', 'office_door'] },
-        parlor_door:    { x: 3.5,  y: 13.25, connections: ['hall_mid', 'parlor_center'] },
-        parlor_center:  { x: 2.0,  y: 15.5,  connections: ['parlor_door'] },
-        office_door:    { x: 5.75, y: 13.75, connections: ['hall_mid', 'office_center'] },
-        office_center:  { x: 8.0,  y: 15.75, connections: ['office_door'] },
+        parlor_center:  { x: 2.25,  y: 2.25,  connections: ['parlor_door'] },
+        parlor_door:    { x: 3.5,   y: 4.5,   connections: ['parlor_center', 'hall_mid'] },
+        office_center:  { x: 2.25,  y: 8.0,   connections: ['office_door'] },
+        office_door:    { x: 3.5,   y: 5.5,   connections: ['office_center', 'hall_mid'] },
+        hall_mid:       { x: 5.25,  y: 5.0,   connections: ['parlor_door', 'office_door', 'dining_door', 'utility_center'] },
+        utility_center: { x: 5.25,  y: 7.5,   connections: ['hall_mid'] },
+        dining_door:    { x: 6.0,   y: 4.25,  connections: ['hall_mid', 'dining_center'] },
+        dining_center:  { x: 7.75,  y: 2.75,  connections: ['dining_door', 'family_door_n'] },
+        kitchen_center: { x: 7.5,   y: 8.0,   connections: ['family_door_s'] },
+        family_door_n:  { x: 9.5,   y: 3.75,  connections: ['dining_center', 'family_center'] },
+        family_door_s:  { x: 9.5,   y: 6.25,  connections: ['kitchen_center', 'family_center'] },
+        family_center:  { x: 11.25, y: 5.25,  connections: ['family_door_n', 'family_door_s', 'garage_door'] },
+        garage_door:    { x: 15.0,  y: 3.5,   connections: ['family_center', 'garage_center'] },
+        garage_center:  { x: 15.5,  y: 7.0,   connections: ['garage_door'] },
       },
       baseSignalQuality: {
         garage:      0.45,
@@ -70,34 +76,31 @@ export const CONFIG = {
     {
       id: 2,
       name: '2nd Floor',
-      width: 10.5,
-      height: 18.0,
+      width: 18.0,
+      height: 10.5,
       svgPath: 'assets/floorplans/floor2.svg',
       rooms: {
-        bedroom1:       { x: 0,    y: 0,    w: 5.5,  h: 5.5,  label: 'Bedroom #1' },
-        bedroom2:       { x: 5.5,  y: 0,    w: 5.0,  h: 5.5,  label: 'Bedroom #2' },
-        guest_bedroom:  { x: 0,    y: 5.5,  w: 5.5,  h: 5.0,  label: 'Guest Bedroom' },
-        hallway:        { x: 3.5,  y: 5.5,  w: 4.0,  h: 2.0,  label: 'Hallway' },
-        bathroom:       { x: 7.0,  y: 5.5,  w: 3.5,  h: 3.0,  label: 'Bathroom' },
-        closet:         { x: 7.0,  y: 8.5,  w: 3.5,  h: 2.0,  label: 'Closet' },
-        master_bedroom: { x: 0,    y: 10.5, w: 10.5, h: 7.5,  label: 'Master Bedroom' },
+        master_bedroom: { x: 0,    y: 0,    w: 7.5,  h: 6.5,  label: 'Master Bedroom' },
+        closet:         { x: 0,    y: 6.5,  w: 5.0,  h: 4.0,  label: 'Closet' },
+        bathroom:       { x: 5.0,  y: 6.5,  w: 3.5,  h: 4.0,  label: 'Bathroom' },
+        guest_bedroom:  { x: 7.5,  y: 0,    w: 5.0,  h: 5.5,  label: 'Guest Bedroom' },
+        hallway:        { x: 8.5,  y: 5.5,  w: 4.0,  h: 5.0,  label: 'Hallway' },
+        bedroom1:       { x: 13.0, y: 0,    w: 5.0,  h: 5.5,  label: 'Bedroom #1' },
+        bedroom2:       { x: 13.0, y: 5.5,  w: 5.0,  h: 5.0,  label: 'Bedroom #2' },
       },
       waypoints: {
-        bedroom1_center: { x: 2.75, y: 2.75, connections: ['bedroom1_door'] },
-        bedroom1_door:   { x: 4.5,  y: 5.5,  connections: ['bedroom1_center', 'hall_west'] },
-        bedroom2_center: { x: 8.0,  y: 2.75, connections: ['bedroom2_door'] },
-        bedroom2_door:   { x: 6.5,  y: 5.5,  connections: ['bedroom2_center', 'hall_east'] },
-        hall_west:       { x: 4.5,  y: 6.5,  connections: ['bedroom1_door', 'hall_mid', 'guest_door'] },
-        hall_mid:        { x: 5.5,  y: 6.5,  connections: ['hall_west', 'hall_east'] },
-        hall_east:       { x: 6.5,  y: 6.5,  connections: ['hall_mid', 'bedroom2_door', 'bathroom_door'] },
-        guest_door:      { x: 3.5,  y: 7.0,  connections: ['hall_west', 'guest_center'] },
-        guest_center:    { x: 2.75, y: 8.0,  connections: ['guest_door', 'master_door'] },
-        master_door:     { x: 2.75, y: 10.5, connections: ['guest_center', 'master_center'] },
-        master_center:   { x: 5.25, y: 14.25, connections: ['master_door'] },
-        bathroom_door:   { x: 7.0,  y: 6.5,  connections: ['hall_east', 'bathroom_center'] },
-        bathroom_center: { x: 8.75, y: 7.0,  connections: ['bathroom_door', 'closet_door'] },
-        closet_door:     { x: 8.75, y: 8.5,  connections: ['bathroom_center', 'closet_center'] },
-        closet_center:   { x: 8.75, y: 9.5,  connections: ['closet_door'] },
+        master_center:   { x: 3.75, y: 3.25,  connections: ['master_door'] },
+        master_door:     { x: 7.5,  y: 3.75,  connections: ['master_center', 'guest_door', 'closet_door'] },
+        closet_door:     { x: 4.25, y: 6.5,   connections: ['master_door', 'closet_center'] },
+        closet_center:   { x: 2.5,  y: 8.5,   connections: ['closet_door'] },
+        bathroom_center: { x: 6.75, y: 8.5,   connections: ['closet_door'] },
+        guest_door:      { x: 9.5,  y: 5.0,   connections: ['master_door', 'guest_center', 'hall_mid'] },
+        guest_center:    { x: 10.0, y: 2.75,  connections: ['guest_door'] },
+        hall_mid:        { x: 10.5, y: 7.5,   connections: ['guest_door', 'bedroom1_door', 'bedroom2_door'] },
+        bedroom1_door:   { x: 13.0, y: 3.25,  connections: ['hall_mid', 'bedroom1_center'] },
+        bedroom1_center: { x: 15.5, y: 2.75,  connections: ['bedroom1_door'] },
+        bedroom2_door:   { x: 13.0, y: 7.75,  connections: ['hall_mid', 'bedroom2_center'] },
+        bedroom2_center: { x: 15.5, y: 8.0,   connections: ['bedroom2_door'] },
       },
       baseSignalQuality: {
         bedroom1:       0.65,
@@ -112,29 +115,29 @@ export const CONFIG = {
     {
       id: 3,
       name: 'Basement',
-      width: 10.5,
-      height: 18.0,
+      width: 18.0,
+      height: 10.5,
       svgPath: 'assets/floorplans/floor3.svg',
       rooms: {
-        workshop:   { x: 4.0,  y: 0,    w: 6.5,  h: 5.0,  label: 'Workshop' },
-        recreation: { x: 0,    y: 0,    w: 4.0,  h: 11.0, label: 'Recreation Area' },
-        bar_area:   { x: 4.0,  y: 5.0,  w: 6.5,  h: 4.5,  label: 'Bar Area' },
-        hallway:    { x: 3.0,  y: 9.5,  w: 4.5,  h: 1.5,  label: 'Hallway' },
-        art_studio: { x: 4.5,  y: 11.0, w: 6.0,  h: 7.0,  label: 'Art Studio' },
-        storage:    { x: 0,    y: 11.0, w: 4.5,  h: 7.0,  label: 'Storage' },
+        storage:    { x: 0,    y: 0,    w: 6.5,  h: 5.0,  label: 'Storage' },
+        art_studio: { x: 0,    y: 5.5,  w: 8.5,  h: 5.0,  label: 'Art Studio' },
+        hallway:    { x: 6.5,  y: 4.0,  w: 2.0,  h: 2.0,  label: 'Hallway' },
+        recreation: { x: 8.5,  y: 0,    w: 9.5,  h: 5.5,  label: 'Recreation Area' },
+        bar_area:   { x: 8.5,  y: 5.5,  w: 5.0,  h: 5.0,  label: 'Bar Area' },
+        workshop:   { x: 13.5, y: 5.5,  w: 4.5,  h: 5.0,  label: 'Workshop' },
       },
       waypoints: {
-        workshop_center: { x: 7.25, y: 2.5,  connections: ['workshop_door'] },
-        workshop_door:   { x: 4.25, y: 2.5,  connections: ['workshop_center', 'rec_north'] },
-        rec_north:       { x: 2.0,  y: 2.5,  connections: ['workshop_door', 'rec_center'] },
-        rec_center:      { x: 2.0,  y: 5.5,  connections: ['rec_north', 'bar_door'] },
-        bar_door:        { x: 4.25, y: 7.25, connections: ['rec_center', 'bar_center', 'hall_mid'] },
-        bar_center:      { x: 7.25, y: 7.25, connections: ['bar_door'] },
-        hall_mid:        { x: 5.25, y: 10.0, connections: ['bar_door', 'storage_door', 'studio_door'] },
-        storage_door:    { x: 2.25, y: 11.0, connections: ['hall_mid', 'storage_center'] },
-        storage_center:  { x: 2.25, y: 14.5, connections: ['storage_door'] },
-        studio_door:     { x: 7.25, y: 11.0, connections: ['hall_mid', 'studio_center'] },
-        studio_center:   { x: 7.5,  y: 14.5, connections: ['studio_door'] },
+        storage_center:  { x: 3.25, y: 2.5,   connections: ['storage_door'] },
+        storage_door:    { x: 5.0,  y: 5.0,   connections: ['storage_center', 'hall_mid'] },
+        hall_mid:        { x: 7.5,  y: 5.0,   connections: ['storage_door', 'studio_door', 'rec_door', 'bar_door'] },
+        studio_door:     { x: 7.0,  y: 6.0,   connections: ['hall_mid', 'studio_center'] },
+        studio_center:   { x: 4.25, y: 8.0,   connections: ['studio_door'] },
+        rec_door:        { x: 8.5,  y: 2.75,  connections: ['hall_mid', 'rec_center'] },
+        rec_center:      { x: 13.25, y: 2.75, connections: ['rec_door'] },
+        bar_door:        { x: 8.5,  y: 8.0,   connections: ['hall_mid', 'bar_center'] },
+        bar_center:      { x: 11.0, y: 8.0,   connections: ['bar_door', 'workshop_door'] },
+        workshop_door:   { x: 13.5, y: 8.0,   connections: ['bar_center', 'workshop_center'] },
+        workshop_center: { x: 15.75, y: 8.0,  connections: ['workshop_door'] },
       },
       baseSignalQuality: {
         workshop:   0.55,

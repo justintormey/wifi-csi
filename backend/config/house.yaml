@@ -1,6 +1,6 @@
 # House configuration for WiFi CSI tracking system.
 # Based on actual floor plans of 14 Charleston Drive.
-# House is portrait-oriented: ~10.5m wide × 18.0m deep (1st floor with garage).
+# House is landscape-oriented: ~18.0m wide × 10.5m deep.
 # Defines floor dimensions, TX channels, and stairwell transition zones.
 
 floors:
@@ -8,70 +8,70 @@ floors:
     name: "1st Floor"
     tx_channel: 1
     dimensions:
-      width_m: 10.5
-      depth_m: 18.0
+      width_m: 18.0
+      depth_m: 10.5
       height_m: 2.7
     rooms:
-      - name: "Garage"
-      - name: "Family Room"
-      - name: "Dining Room"
-      - name: "Kitchen"
-      - name: "Hallway"
-      - name: "Utility"
       - name: "Parlor"
       - name: "Office"
+      - name: "Hallway"
+      - name: "Utility"
+      - name: "Dining Room"
+      - name: "Kitchen"
+      - name: "Family Room"
+      - name: "Garage"
 
   2:
     name: "2nd Floor"
     tx_channel: 6
     dimensions:
-      width_m: 10.5
-      depth_m: 18.0
+      width_m: 18.0
+      depth_m: 10.5
       height_m: 2.7
     rooms:
-      - name: "Bedroom #1"
-      - name: "Bedroom #2"
-      - name: "Guest Bedroom"
-      - name: "Hallway"
-      - name: "Bathroom"
       - name: "Master Bedroom"
       - name: "Closet"
+      - name: "Bathroom"
+      - name: "Guest Bedroom"
+      - name: "Hallway"
+      - name: "Bedroom #1"
+      - name: "Bedroom #2"
 
   3:
     name: "Basement"
     tx_channel: 11
     dimensions:
-      width_m: 10.5
-      depth_m: 18.0
+      width_m: 18.0
+      depth_m: 10.5
       height_m: 2.4
     rooms:
-      - name: "Recreation Area"
-      - name: "Workshop"
-      - name: "Bar Area"
-      - name: "Hallway"
       - name: "Storage"
       - name: "Art Studio"
+      - name: "Hallway"
+      - name: "Recreation Area"
+      - name: "Bar Area"
+      - name: "Workshop"
 
 # Stairwell transition zones.
 # When a person is within a transition zone, the floor detector relaxes
 # hysteresis and allows floor changes. Each zone connects two adjacent floors.
-# Coordinates are in each floor's local meter system.
+# Coordinates are in each floor's local meter system (landscape orientation).
 transition_zones:
   - name: "Main Stairwell (1st→2nd)"
     floors: [1, 2]
-    # Stairwell on 1st floor at hallway area (x=4.5, y=13.1)
+    # Stairwell on 1st floor at hallway area (x=5.0, y=4.5)
     x_min: 4.0
-    x_max: 6.0
-    y_min: 13.0
-    y_max: 14.5
+    x_max: 6.5
+    y_min: 3.5
+    y_max: 6.5
 
   - name: "Basement Stairwell (Basement→1st)"
     floors: [3, 1]
-    # Stairwell on basement at hallway area (x=4.2, y=9.6)
-    x_min: 3.5
-    x_max: 6.0
-    y_min: 9.0
-    y_max: 11.0
+    # Stairwell on basement at hallway area (x=7.5, y=5.0)
+    x_min: 6.0
+    x_max: 9.0
+    y_min: 3.5
+    y_max: 6.5
 
 # Cross-floor attenuation model (used for energy-based floor detection).
 attenuation:

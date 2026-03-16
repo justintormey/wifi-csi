@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1800" class="floorplan" data-floor="3">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 1050" class="floorplan" data-floor="3">
   <defs>
     <pattern id="grid3" width="100" height="100" patternUnits="userSpaceOnUse">
       <path d="M 100 0 L 0 0 0 100" fill="none" stroke="rgba(0,255,255,0.04)" stroke-width="0.5"/>
@@ -6,101 +6,118 @@
   </defs>
 
   <!-- Background grid -->
-  <rect width="1050" height="1800" fill="url(#grid3)" class="floor-bg"/>
+  <rect width="1800" height="1050" fill="url(#grid3)" class="floor-bg"/>
 
   <!-- ═══ Rooms ═══ -->
   <g class="rooms">
-    <!-- Workshop: upper-right -->
-    <rect x="400" y="0" width="650" height="500" class="room" data-room="workshop"/>
-    <!-- Recreation Area: tall left column -->
-    <rect x="0" y="0" width="400" height="1100" class="room" data-room="recreation"/>
-    <!-- Bar Area: center-right -->
-    <rect x="400" y="500" width="650" height="450" class="room" data-room="bar_area"/>
-    <!-- Hallway: central corridor -->
-    <rect x="300" y="950" width="450" height="150" class="room room-hallway" data-room="hallway"/>
-    <!-- Art Studio: bottom-right -->
-    <rect x="450" y="1100" width="600" height="700" class="room" data-room="art_studio"/>
-    <!-- Storage: bottom-left -->
-    <rect x="0" y="1100" width="450" height="700" class="room" data-room="storage"/>
+    <!-- Storage: upper-left (with irregular wall jog matching 1st floor) -->
+    <rect x="0" y="0" width="650" height="500" class="room" data-room="storage"/>
+    <!-- Art Studio: lower-left -->
+    <rect x="0" y="550" width="850" height="500" class="room" data-room="art_studio"/>
+    <!-- Hallway: central corridor around stairwell -->
+    <rect x="650" y="400" width="200" height="200" class="room room-hallway" data-room="hallway"/>
+    <!-- Recreation Area: upper-right, large room -->
+    <rect x="850" y="0" width="950" height="550" class="room" data-room="recreation"/>
+    <!-- Bar Area: lower-center (dashed divider from Workshop) -->
+    <rect x="850" y="550" width="500" height="500" class="room" data-room="bar_area"/>
+    <!-- Workshop: lower-right -->
+    <rect x="1350" y="550" width="450" height="500" class="room" data-room="workshop"/>
   </g>
 
   <!-- ═══ Walls (exterior) ═══ -->
   <g class="walls">
-    <line x1="0" y1="0" x2="1050" y2="0" class="wall wall-exterior"/>
-    <line x1="0" y1="0" x2="0" y2="1800" class="wall wall-exterior"/>
-    <line x1="0" y1="1800" x2="1050" y2="1800" class="wall wall-exterior"/>
-    <line x1="1050" y1="0" x2="1050" y2="1800" class="wall wall-exterior"/>
+    <!-- Top wall with jog matching 1st floor footprint -->
+    <line x1="0" y1="0" x2="400" y2="0" class="wall wall-exterior"/>
+    <line x1="400" y1="0" x2="400" y2="80" class="wall wall-exterior"/>
+    <line x1="400" y1="80" x2="500" y2="80" class="wall wall-exterior"/>
+    <line x1="500" y1="80" x2="500" y2="0" class="wall wall-exterior"/>
+    <line x1="500" y1="0" x2="1800" y2="0" class="wall wall-exterior"/>
+    <!-- Right wall -->
+    <line x1="1800" y1="0" x2="1800" y2="1050" class="wall wall-exterior"/>
+    <!-- Bottom wall -->
+    <line x1="0" y1="1050" x2="1800" y2="1050" class="wall wall-exterior"/>
+    <!-- Left wall -->
+    <line x1="0" y1="0" x2="0" y2="1050" class="wall wall-exterior"/>
 
-    <!-- Interior walls -->
-    <!-- Recreation / Workshop divider (x=400, top) -->
-    <line x1="400" y1="0" x2="400" y2="200" class="wall wall-interior"/>
-    <line x1="400" y1="350" x2="400" y2="500" class="wall wall-interior"/>
-    <!-- Recreation / Bar Area divider (x=400, middle) -->
-    <line x1="400" y1="500" x2="400" y2="950" class="wall wall-interior"/>
-    <!-- Workshop / Bar Area divider (y=500) -->
-    <line x1="400" y1="500" x2="1050" y2="500" class="wall wall-interior"/>
-    <!-- Bar Area bottom / Hallway (y=950) -->
-    <line x1="300" y1="950" x2="400" y2="950" class="wall wall-interior"/>
-    <line x1="400" y1="950" x2="750" y2="950" class="wall wall-interior"/>
-    <line x1="750" y1="950" x2="1050" y2="950" class="wall wall-interior"/>
-    <!-- Recreation south / Storage-Art divider (y=1100) -->
-    <line x1="0" y1="1100" x2="300" y2="1100" class="wall wall-interior"/>
-    <line x1="450" y1="1100" x2="1050" y2="1100" class="wall wall-interior"/>
-    <!-- Hallway south wall -->
-    <line x1="300" y1="1100" x2="450" y2="1100" class="wall wall-interior"/>
-    <!-- Storage / Art Studio divider (x=450) -->
-    <line x1="450" y1="1100" x2="450" y2="1800" class="wall wall-interior"/>
-    <!-- Recreation / Hallway (x=300, lower) -->
-    <line x1="300" y1="950" x2="300" y2="1100" class="wall wall-interior"/>
+    <!-- ── Interior walls ── -->
+
+    <!-- Storage south wall (y=500) -->
+    <line x1="0" y1="500" x2="450" y2="500" class="wall wall-interior"/>
+    <line x1="550" y1="500" x2="650" y2="500" class="wall wall-interior"/>
+
+    <!-- Art Studio north wall (y=550) -->
+    <line x1="0" y1="550" x2="650" y2="550" class="wall wall-interior"/>
+    <line x1="850" y1="550" x2="1800" y2="550" class="wall wall-interior"/>
+
+    <!-- Storage/Art Studio east wall (x=650) upper -->
+    <line x1="650" y1="0" x2="650" y2="400" class="wall wall-interior"/>
+    <line x1="650" y1="600" x2="650" y2="1050" class="wall wall-interior"/>
+
+    <!-- Art Studio / Bar Area divider (x=850) lower -->
+    <line x1="850" y1="550" x2="850" y2="750" class="wall wall-interior"/>
+    <line x1="850" y1="900" x2="850" y2="1050" class="wall wall-interior"/>
+
+    <!-- Recreation / lower rooms divider (y=550) at x=850 to 1800 -->
+    <!-- Already drawn above -->
+
+    <!-- Bar Area / Workshop divider (x=1350) — DASHED (partial wall) -->
+    <line x1="1350" y1="550" x2="1350" y2="700" class="wall wall-interior" stroke-dasharray="12,8"/>
+    <line x1="1350" y1="700" x2="1350" y2="1050" class="wall wall-interior" stroke-dasharray="12,8"/>
+
+    <!-- Hallway walls -->
+    <line x1="650" y1="400" x2="850" y2="400" class="wall wall-interior"/>
+    <line x1="650" y1="600" x2="850" y2="600" class="wall wall-interior"/>
 
     <!-- Stairwell -->
-    <rect x="420" y="960" width="120" height="130" class="stairwell" data-stairwell="down"/>
+    <rect x="670" y="420" width="160" height="160" class="stairwell" data-stairwell="down"/>
   </g>
 
   <!-- ═══ Doors ═══ -->
   <g class="doors">
-    <!-- Recreation → Workshop -->
-    <line x1="400" y1="200" x2="400" y2="350" class="door"/>
-    <!-- Bar Area → Hallway -->
-    <line x1="400" y1="960" x2="400" y2="1090" class="door"/>
-    <!-- Hallway → Storage -->
-    <line x1="300" y1="1000" x2="300" y2="1090" class="door"/>
-    <!-- Hallway → Art Studio -->
-    <line x1="550" y1="1100" x2="700" y2="1100" class="door"/>
+    <!-- Storage → Hallway (gap in y=500 wall) -->
+    <line x1="450" y1="500" x2="550" y2="500" class="door"/>
+    <!-- Art Studio → Bar Area (gap in x=850 wall) -->
+    <line x1="850" y1="750" x2="850" y2="900" class="door"/>
+    <!-- Recreation → Hallway (gap in x=850 wall at y=400-550) -->
+    <line x1="850" y1="400" x2="850" y2="550" class="door"/>
+    <!-- Storage → Art Studio (gap between rooms) -->
+    <line x1="650" y1="450" x2="650" y2="550" class="door"/>
   </g>
 
   <!-- ═══ Windows ═══ -->
   <g class="windows">
-    <!-- Workshop windows (top + right) -->
-    <line x1="550" y1="0" x2="800" y2="0" class="window"/>
-    <line x1="1050" y1="80" x2="1050" y2="300" class="window"/>
-    <!-- Recreation Area windows (left) -->
+    <!-- Storage windows (left + top) -->
     <line x1="0" y1="100" x2="0" y2="350" class="window"/>
-    <line x1="0" y1="500" x2="0" y2="750" class="window"/>
-    <!-- Bar Area window (right) -->
-    <line x1="1050" y1="550" x2="1050" y2="800" class="window"/>
-    <!-- Storage windows (left) -->
-    <line x1="0" y1="1200" x2="0" y2="1500" class="window"/>
-    <!-- Art Studio windows (right + bottom) -->
-    <line x1="1050" y1="1250" x2="1050" y2="1550" class="window"/>
-    <line x1="600" y1="1800" x2="900" y2="1800" class="window"/>
+    <line x1="100" y1="0" x2="300" y2="0" class="window"/>
+    <!-- Art Studio windows (left + bottom) -->
+    <line x1="0" y1="650" x2="0" y2="900" class="window"/>
+    <line x1="100" y1="1050" x2="400" y2="1050" class="window"/>
+    <!-- Recreation Area windows (top + right) -->
+    <line x1="1000" y1="0" x2="1300" y2="0" class="window"/>
+    <line x1="1500" y1="0" x2="1750" y2="0" class="window"/>
+    <line x1="1800" y1="100" x2="1800" y2="400" class="window"/>
+    <!-- Bar Area window (bottom) -->
+    <line x1="950" y1="1050" x2="1200" y2="1050" class="window"/>
+    <!-- Workshop windows (right + bottom) -->
+    <line x1="1800" y1="650" x2="1800" y2="900" class="window"/>
+    <line x1="1450" y1="1050" x2="1700" y2="1050" class="window"/>
   </g>
 
   <!-- ═══ Room Labels ═══ -->
   <g class="room-labels">
-    <text x="725" y="260" class="label">Workshop</text>
-    <text x="200" y="550" class="label">Recreation<tspan x="200" dy="35">Area</tspan></text>
-    <text x="725" y="730" class="label">Bar Area</text>
-    <text x="525" y="1040" class="label label-tiny">▼ DOWN</text>
-    <text x="225" y="1450" class="label">Storage</text>
-    <text x="750" y="1450" class="label">Art Studio</text>
+    <text x="325" y="260" class="label">Storage</text>
+    <text x="425" y="800" class="label">Art Studio</text>
+    <text x="750" y="520" class="label label-tiny">▼ DOWN</text>
+    <text x="1325" y="280" class="label">Recreation Area</text>
+    <text x="1100" y="800" class="label">Bar Area</text>
+    <text x="1575" y="800" class="label label-small">Workshop</text>
   </g>
 
   <!-- ═══ Sensor positions ═══ -->
   <g class="sensors">
-    <circle cx="525" cy="525" r="8" class="sensor sensor-tx"/>
+    <circle cx="1325" cy="280" r="8" class="sensor sensor-tx"/>
     <circle cx="50" cy="50" r="6" class="sensor sensor-rx"/>
-    <circle cx="1000" cy="50" r="6" class="sensor sensor-rx"/>
-    <circle cx="50" cy="1750" r="6" class="sensor sensor-rx"/>
+    <circle cx="1750" cy="50" r="6" class="sensor sensor-rx"/>
+    <circle cx="50" cy="1000" r="6" class="sensor sensor-rx"/>
   </g>
 </svg>

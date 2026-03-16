@@ -2,6 +2,8 @@
 # Based on actual floor plans of 14 Charleston Drive.
 # Defines ESP32-S3 board MACs, roles (TX/RX), floor assignments,
 # WiFi channels, and expected MQTT topics.
+#
+# Coordinate system: landscape orientation, 18.0m wide × 10.5m deep.
 
 # ── Phase 1: Single floor (1st Floor) ──
 # 1 TX + 3 RX boards. Phase 2 adds floors 2 and 3.
@@ -13,8 +15,8 @@ sensors:
     floor: 1
     channel: 1
     position:
-      x: 5.25   # center of family room
-      y: 7.25
+      x: 11.25  # center of family room main body
+      y: 5.25
     label: "Floor 1 TX (family room ceiling)"
 
   - mac: "aa:bb:cc:dd:01:01"
@@ -24,14 +26,14 @@ sensors:
     position:
       x: 0.5
       y: 0.5
-    label: "Floor 1 RX-A (garage corner)"
+    label: "Floor 1 RX-A (parlor corner)"
 
   - mac: "aa:bb:cc:dd:01:02"
     role: rx
     floor: 1
     channel: 1
     position:
-      x: 10.0
+      x: 17.5
       y: 0.5
     label: "Floor 1 RX-B (garage corner right)"
 
@@ -41,8 +43,8 @@ sensors:
     channel: 1
     position:
       x: 0.5
-      y: 17.5
-    label: "Floor 1 RX-C (parlor corner)"
+      y: 10.0
+    label: "Floor 1 RX-C (office corner)"
 
   # ── Floor 2: 2nd Floor (Channel 6) ──
   - mac: "aa:bb:cc:dd:02:00"
@@ -50,8 +52,8 @@ sensors:
     floor: 2
     channel: 6
     position:
-      x: 5.25
-      y: 5.25
+      x: 10.5   # center of hallway/landing
+      y: 5.0
     label: "Floor 2 TX (hallway ceiling)"
 
   - mac: "aa:bb:cc:dd:02:01"
@@ -61,16 +63,16 @@ sensors:
     position:
       x: 0.5
       y: 0.5
-    label: "Floor 2 RX-A (bedroom 1 corner)"
+    label: "Floor 2 RX-A (master bedroom corner)"
 
   - mac: "aa:bb:cc:dd:02:02"
     role: rx
     floor: 2
     channel: 6
     position:
-      x: 10.0
+      x: 17.5
       y: 0.5
-    label: "Floor 2 RX-B (bedroom 2 corner)"
+    label: "Floor 2 RX-B (bedroom 1 corner)"
 
   - mac: "aa:bb:cc:dd:02:03"
     role: rx
@@ -78,8 +80,8 @@ sensors:
     channel: 6
     position:
       x: 0.5
-      y: 17.5
-    label: "Floor 2 RX-C (master bedroom corner)"
+      y: 10.0
+    label: "Floor 2 RX-C (closet corner)"
 
   # ── Floor 3: Basement (Channel 11) ──
   - mac: "aa:bb:cc:dd:03:00"
@@ -87,9 +89,9 @@ sensors:
     floor: 3
     channel: 11
     position:
-      x: 5.25
-      y: 5.25
-    label: "Basement TX (hallway ceiling)"
+      x: 13.25  # center of recreation area
+      y: 2.75
+    label: "Basement TX (recreation area ceiling)"
 
   - mac: "aa:bb:cc:dd:03:01"
     role: rx
@@ -98,16 +100,16 @@ sensors:
     position:
       x: 0.5
       y: 0.5
-    label: "Basement RX-A (recreation area corner)"
+    label: "Basement RX-A (storage corner)"
 
   - mac: "aa:bb:cc:dd:03:02"
     role: rx
     floor: 3
     channel: 11
     position:
-      x: 10.0
+      x: 17.5
       y: 0.5
-    label: "Basement RX-B (workshop corner)"
+    label: "Basement RX-B (recreation area corner)"
 
   - mac: "aa:bb:cc:dd:03:03"
     role: rx
@@ -115,8 +117,8 @@ sensors:
     channel: 11
     position:
       x: 0.5
-      y: 17.5
-    label: "Basement RX-C (storage corner)"
+      y: 10.0
+    label: "Basement RX-C (art studio corner)"
 
 # MQTT topic pattern for CSI data.
 # Each RX board publishes to: csi/{floor_id}/{rx_mac}
