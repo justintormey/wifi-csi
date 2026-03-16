@@ -102,10 +102,10 @@ describe('Simulator', () => {
       expect(sim.people[0].x).toBe(kitchenCenter.x);
       expect(sim.people[0].y).toBe(kitchenCenter.y);
 
-      // p2 starts at living_center
-      const livingCenter = floor.waypoints.living_center;
-      expect(sim.people[1].x).toBe(livingCenter.x);
-      expect(sim.people[1].y).toBe(livingCenter.y);
+      // p2 starts at family_center
+      const familyCenter = floor.waypoints.family_center;
+      expect(sim.people[1].x).toBe(familyCenter.x);
+      expect(sim.people[1].y).toBe(familyCenter.y);
     });
 
     it('should fall back to random mode for unknown scenario', () => {
@@ -148,7 +148,7 @@ describe('Simulator', () => {
       person.stationaryTime = 60;
       person.heartrateConfidence = 0.5;
 
-      const payload = person.toPayload({ living_room: 0.88 });
+      const payload = person.toPayload({ family_room: 0.85 });
       expect(payload.heartrate.display).toBe(false);
     });
 
@@ -160,7 +160,7 @@ describe('Simulator', () => {
       person.stationaryTime = 20; // < 30s
       person.heartrateConfidence = 0.5;
 
-      const payload = person.toPayload({ living_room: 0.88 });
+      const payload = person.toPayload({ family_room: 0.85 });
       expect(payload.heartrate.display).toBe(false);
     });
 
@@ -172,7 +172,7 @@ describe('Simulator', () => {
       person.stationaryTime = 60;
       person.heartrateConfidence = 0.10; // <= 0.15
 
-      const payload = person.toPayload({ living_room: 0.88 });
+      const payload = person.toPayload({ family_room: 0.85 });
       expect(payload.heartrate.display).toBe(false);
     });
 
@@ -204,7 +204,7 @@ describe('Simulator', () => {
       person.x = 3.5;
       person.y = 2.75;
 
-      const payload = person.toPayload({ living_room: 0.90 });
+      const payload = person.toPayload({ family_room: 0.90 });
       // Position confidence should be ~0.90 + noise > 0.6
       if (payload.position_confidence > 0.6 && payload.heartrate.confidence > 0.15) {
         expect(payload.heartrate.display).toBe(true);

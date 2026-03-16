@@ -25,9 +25,9 @@ describe('NoiseOverlay', () => {
 
   describe('initialization', () => {
     it('should initialize with base signal qualities from config', () => {
-      expect(overlay.targetQualities.living_room).toBe(0.88);
+      expect(overlay.targetQualities.family_room).toBe(0.85);
       expect(overlay.targetQualities.garage).toBe(0.45);
-      expect(overlay.displayQualities.living_room).toBe(0.88);
+      expect(overlay.displayQualities.family_room).toBe(0.85);
     });
 
     it('should create cloud particles for each zone', () => {
@@ -47,12 +47,12 @@ describe('NoiseOverlay', () => {
   describe('quality updates', () => {
     it('should update target qualities from payload data', () => {
       overlay.update({
-        living_room: 0.30,
+        family_room: 0.30,
         kitchen: 0.95,
         garage: 0.10,
       });
 
-      expect(overlay.targetQualities.living_room).toBe(0.30);
+      expect(overlay.targetQualities.family_room).toBe(0.30);
       expect(overlay.targetQualities.kitchen).toBe(0.95);
       expect(overlay.targetQualities.garage).toBe(0.10);
     });
@@ -69,10 +69,10 @@ describe('NoiseOverlay', () => {
     });
 
     it('should smooth display qualities toward targets over time', () => {
-      overlay.update({ living_room: 0.20 }); // big drop from 0.88
+      overlay.update({ family_room: 0.20 }); // big drop from 0.85
 
       // Display should still be near original
-      expect(overlay.displayQualities.living_room).toBe(0.88);
+      expect(overlay.displayQualities.family_room).toBe(0.85);
 
       // Tick several times
       for (let i = 0; i < 100; i++) {
@@ -80,7 +80,7 @@ describe('NoiseOverlay', () => {
       }
 
       // Should be close to target now
-      expect(overlay.displayQualities.living_room).toBeCloseTo(0.20, 1);
+      expect(overlay.displayQualities.family_room).toBeCloseTo(0.20, 1);
     });
   });
 
@@ -106,15 +106,15 @@ describe('NoiseOverlay', () => {
 
   describe('ripple spawning', () => {
     it('should spawn ripples more frequently in low-quality zones', () => {
-      // Set garage to very poor quality
-      overlay.update({ garage: 0.10, living_room: 0.95 });
+      // Set garage to very poor quality, family room to very good
+      overlay.update({ garage: 0.10, family_room: 0.95 });
       for (let i = 0; i < 50; i++) overlay._tick(0.016);
 
-      // Spawn ripples many times and count how many are near garage vs living room
+      // Spawn ripples many times and count how many are near garage vs family room
       let garageRipples = 0;
-      let livingRipples = 0;
+      let familyRipples = 0;
       const garageZone = CONFIG.floors[0].rooms.garage;
-      const livingZone = CONFIG.floors[0].rooms.living_room;
+      const familyZone = CONFIG.floors[0].rooms.family_room;
 
       for (let i = 0; i < 200; i++) {
         overlay._spawnRipples();
@@ -125,20 +125,20 @@ describe('NoiseOverlay', () => {
             ripple.y >= garageZone.y && ripple.y <= garageZone.y + garageZone.h) {
           garageRipples++;
         }
-        if (ripple.x >= livingZone.x && ripple.x <= livingZone.x + livingZone.w &&
-            ripple.y >= livingZone.y && ripple.y <= livingZone.y + livingZone.h) {
-          livingRipples++;
+        if (ripple.x >= familyZone.x && ripple.x <= familyZone.x + familyZone.w &&
+            ripple.y >= familyZone.y && ripple.y <= familyZone.y + familyZone.h) {
+          familyRipples++;
         }
       }
 
-      // Garage (quality ~0.10) should have far more ripples than living room (quality ~0.95)
-      expect(garageRipples).toBeGreaterThan(livingRipples);
+      // Garage (quality ~0.10) should have far more ripples than family room (quality ~0.95)
+      expect(garageRipples).toBeGreaterThan(familyRipples);
     });
 
     it('should cap ripple count at RIPPLE_MAX_COUNT (12)', () => {
       overlay.update({
-        living_room: 0.05, kitchen: 0.05, dining: 0.05, hallway: 0.05,
-        garage: 0.05, bathroom: 0.05, laundry: 0.05, entry: 0.05,
+        garage: 0.05, family_room: 0.05, kitchen: 0.05, hallway: 0.05,
+        dining: 0.05, utility: 0.05, office: 0.05, parlor: 0.05,
       });
 
       // Spam spawn ripples
@@ -184,8 +184,8 @@ describe('NoiseOverlay', () => {
       const levels = [0.0, 0.1, 0.25, 0.5, 0.75, 0.9, 1.0];
       for (const q of levels) {
         overlay.update({
-          living_room: q, kitchen: q, dining: q, hallway: q,
-          garage: q, bathroom: q, laundry: q, entry: q,
+          garage: q, family_room: q, kitchen: q, hallway: q,
+          dining: q, utility: q, office: q, parlor: q,
         });
 
         // Force display to match target

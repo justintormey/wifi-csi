@@ -10,24 +10,22 @@
 
   <!-- ═══ Rooms ═══ -->
   <g class="rooms">
-    <!-- Master Bedroom: x:0 y:0 w:7m h:5.5m -->
-    <rect x="0" y="0" width="700" height="550" class="room" data-room="master_bedroom"/>
-    <!-- Bedroom 2: x:7 y:0 w:5.5m h:5.5m -->
-    <rect x="700" y="0" width="550" height="550" class="room" data-room="bedroom2"/>
-    <!-- Bedroom 3: x:12.5 y:0 w:5.5m h:5.5m -->
-    <rect x="1250" y="0" width="550" height="550" class="room" data-room="bedroom3"/>
-    <!-- Hallway: x:3.5 y:5.5 w:9.5m h:2m -->
-    <rect x="350" y="550" width="950" height="200" class="room room-hallway" data-room="hallway"/>
-    <!-- Master Bath: x:0 y:5.5 w:3.5m h:3.5m -->
-    <rect x="0" y="550" width="350" height="350" class="room" data-room="master_bath"/>
-    <!-- Walk-in Closet: x:0 y:9 w:3.5m h:1.5m -->
-    <rect x="0" y="900" width="350" height="150" class="room" data-room="closet"/>
-    <!-- Full Bathroom: x:13 y:5.5 w:3m h:5m -->
-    <rect x="1300" y="550" width="300" height="500" class="room" data-room="bathroom"/>
-    <!-- Linen Closet: x:16 y:5.5 w:2m h:2.5m -->
-    <rect x="1600" y="550" width="200" height="250" class="room" data-room="linen_closet"/>
-    <!-- Landing: x:16 y:8 w:2m h:2.5m -->
-    <rect x="1600" y="800" width="200" height="250" class="room room-hallway" data-room="landing"/>
+    <!-- Bedroom #1: top-left -->
+    <rect x="0" y="0" width="550" height="550" class="room" data-room="bedroom1"/>
+    <!-- Bedroom #2: top-center -->
+    <rect x="550" y="0" width="500" height="550" class="room" data-room="bedroom2"/>
+    <!-- Guest Bedroom: top-right -->
+    <rect x="1050" y="0" width="750" height="550" class="room" data-room="guest_bedroom"/>
+    <!-- Hallway: central corridor -->
+    <rect x="350" y="550" width="800" height="200" class="room room-hallway" data-room="hallway"/>
+    <!-- Master Bedroom: bottom-left, largest room -->
+    <rect x="0" y="550" width="350" height="500" class="room" data-room="master_bedroom"/>
+    <!-- Bathroom: bottom-center -->
+    <rect x="1150" y="550" width="350" height="500" class="room" data-room="bathroom"/>
+    <!-- Closet: bottom-right (master closet) -->
+    <rect x="1500" y="550" width="300" height="500" class="room" data-room="closet"/>
+    <!-- Landing area below hallway -->
+    <rect x="350" y="750" width="800" height="300" class="room" data-room="master_bedroom"/>
   </g>
 
   <!-- ═══ Walls (exterior) ═══ -->
@@ -42,86 +40,77 @@
     <line x1="1800" y1="0" x2="1800" y2="1050" class="wall wall-exterior"/>
 
     <!-- Interior walls -->
-    <!-- Master/Bedroom2 divider -->
-    <line x1="700" y1="0" x2="700" y2="200" class="wall wall-interior"/>
-    <line x1="700" y1="340" x2="700" y2="550" class="wall wall-interior"/>
-    <!-- Bedroom2/Bedroom3 divider -->
-    <line x1="1250" y1="0" x2="1250" y2="200" class="wall wall-interior"/>
-    <line x1="1250" y1="340" x2="1250" y2="550" class="wall wall-interior"/>
-    <!-- Top rooms to hallway -->
+    <!-- Bedroom 1 / Bedroom 2 divider -->
+    <line x1="550" y1="0" x2="550" y2="200" class="wall wall-interior"/>
+    <line x1="550" y1="350" x2="550" y2="550" class="wall wall-interior"/>
+    <!-- Bedroom 2 / Guest Bedroom divider -->
+    <line x1="1050" y1="0" x2="1050" y2="200" class="wall wall-interior"/>
+    <line x1="1050" y1="350" x2="1050" y2="550" class="wall wall-interior"/>
+    <!-- Top rooms to hallway/lower (y=550) -->
     <line x1="0" y1="550" x2="350" y2="550" class="wall wall-interior"/>
     <line x1="350" y1="550" x2="500" y2="550" class="wall wall-interior"/>
-    <line x1="600" y1="550" x2="700" y2="550" class="wall wall-interior"/>
-    <line x1="700" y1="550" x2="850" y2="550" class="wall wall-interior"/>
-    <line x1="990" y1="550" x2="1250" y2="550" class="wall wall-interior"/>
-    <line x1="1250" y1="550" x2="1300" y2="550" class="wall wall-interior"/>
+    <line x1="640" y1="550" x2="800" y2="550" class="wall wall-interior"/>
+    <line x1="800" y1="550" x2="900" y2="550" class="wall wall-interior"/>
+    <line x1="1040" y1="550" x2="1150" y2="550" class="wall wall-interior"/>
+    <line x1="1150" y1="550" x2="1800" y2="550" class="wall wall-interior"/>
+    <!-- Master bedroom east wall -->
+    <line x1="350" y1="550" x2="350" y2="1050" class="wall wall-interior"/>
     <!-- Hallway south wall -->
-    <line x1="350" y1="750" x2="1300" y2="750" class="wall wall-interior"/>
-    <!-- Master bath south wall -->
-    <line x1="0" y1="900" x2="350" y2="900" class="wall wall-interior"/>
-    <!-- Master bath / Hallway divider -->
-    <line x1="350" y1="550" x2="350" y2="750" class="wall wall-interior"/>
-    <line x1="350" y1="750" x2="350" y2="1050" class="wall wall-interior"/>
+    <line x1="350" y1="750" x2="1150" y2="750" class="wall wall-interior"/>
     <!-- Bathroom west wall -->
-    <line x1="1300" y1="550" x2="1300" y2="1050" class="wall wall-interior"/>
-    <!-- Linen/Landing divider -->
-    <line x1="1600" y1="550" x2="1600" y2="1050" class="wall wall-interior"/>
-    <line x1="1600" y1="800" x2="1800" y2="800" class="wall wall-interior"/>
+    <line x1="1150" y1="550" x2="1150" y2="1050" class="wall wall-interior"/>
+    <!-- Closet west wall -->
+    <line x1="1500" y1="550" x2="1500" y2="700" class="wall wall-interior"/>
+    <line x1="1500" y1="840" x2="1500" y2="1050" class="wall wall-interior"/>
 
-    <!-- Stairwell (in hallway, matching floor 1 position) -->
+    <!-- Stairwell (matching floor 1 position) -->
     <rect x="850" y="560" width="180" height="180" class="stairwell" data-stairwell="both"/>
   </g>
 
   <!-- ═══ Doors ═══ -->
   <g class="doors">
-    <!-- Master → Bedroom 2 -->
-    <line x1="700" y1="200" x2="700" y2="340" class="door"/>
-    <!-- Bedroom 2 → Bedroom 3 -->
-    <line x1="1250" y1="200" x2="1250" y2="340" class="door"/>
-    <!-- Master → Hallway -->
-    <line x1="500" y1="550" x2="600" y2="550" class="door"/>
+    <!-- Bedroom 1 → Bedroom 2 (shared wall) -->
+    <line x1="550" y1="200" x2="550" y2="350" class="door"/>
+    <!-- Bedroom 2 → Guest Bedroom -->
+    <line x1="1050" y1="200" x2="1050" y2="350" class="door"/>
+    <!-- Bedroom 1 → Hallway -->
+    <line x1="500" y1="550" x2="640" y2="550" class="door"/>
     <!-- Bedroom 2 → Hallway -->
-    <line x1="850" y1="550" x2="990" y2="550" class="door"/>
-    <!-- Bedroom 3 → Hallway (through landing area) -->
-    <line x1="1300" y1="600" x2="1300" y2="730" class="door"/>
-    <!-- Master → Master Bath -->
-    <line x1="0" y1="600" x2="0" y2="730" class="door"/>
-    <!-- Master Bath → Closet -->
-    <line x1="100" y1="900" x2="250" y2="900" class="door"/>
+    <line x1="900" y1="550" x2="1040" y2="550" class="door"/>
+    <!-- Master Bedroom → Hallway -->
+    <line x1="350" y1="600" x2="350" y2="740" class="door"/>
     <!-- Hallway → Bathroom -->
-    <line x1="1300" y1="600" x2="1300" y2="730" class="door"/>
-    <!-- Linen closet door -->
-    <line x1="1600" y1="600" x2="1600" y2="730" class="door"/>
+    <line x1="1150" y1="600" x2="1150" y2="740" class="door"/>
+    <!-- Bathroom → Closet -->
+    <line x1="1500" y1="700" x2="1500" y2="840" class="door"/>
   </g>
 
   <!-- ═══ Windows ═══ -->
   <g class="windows">
-    <!-- Master bedroom windows -->
-    <line x1="150" y1="0" x2="350" y2="0" class="window"/>
-    <line x1="450" y1="0" x2="600" y2="0" class="window"/>
+    <!-- Bedroom 1 windows -->
+    <line x1="100" y1="0" x2="300" y2="0" class="window"/>
     <line x1="0" y1="100" x2="0" y2="300" class="window"/>
     <!-- Bedroom 2 windows -->
-    <line x1="850" y1="0" x2="1050" y2="0" class="window"/>
-    <!-- Bedroom 3 windows -->
-    <line x1="1400" y1="0" x2="1650" y2="0" class="window"/>
+    <line x1="700" y1="0" x2="900" y2="0" class="window"/>
+    <!-- Guest Bedroom windows -->
+    <line x1="1200" y1="0" x2="1450" y2="0" class="window"/>
     <line x1="1800" y1="100" x2="1800" y2="350" class="window"/>
-    <!-- Master bath window -->
-    <line x1="0" y1="650" x2="0" y2="800" class="window"/>
+    <!-- Master Bedroom windows -->
+    <line x1="0" y1="650" x2="0" y2="850" class="window"/>
+    <line x1="100" y1="1050" x2="300" y2="1050" class="window"/>
     <!-- Bathroom window -->
-    <line x1="1800" y1="600" x2="1800" y2="750" class="window"/>
+    <line x1="1800" y1="650" x2="1800" y2="850" class="window"/>
   </g>
 
   <!-- ═══ Room Labels ═══ -->
   <g class="room-labels">
-    <text x="350" y="290" class="label">Master Bedroom</text>
-    <text x="975" y="290" class="label">Bedroom 2</text>
-    <text x="1525" y="290" class="label">Bedroom 3</text>
+    <text x="275" y="290" class="label">Bedroom #1</text>
+    <text x="800" y="290" class="label">Bedroom #2</text>
+    <text x="1425" y="290" class="label">Guest Bedroom</text>
     <text x="750" y="665" class="label label-small">Hallway</text>
-    <text x="175" y="740" class="label label-small">Master Bath</text>
-    <text x="175" y="990" class="label label-tiny">Closet</text>
-    <text x="1450" y="810" class="label label-small">Bathroom</text>
-    <text x="1700" y="690" class="label label-tiny">Linen</text>
-    <text x="1700" y="940" class="label label-tiny">Landing</text>
+    <text x="175" y="810" class="label">Master<tspan x="175" dy="30">Bedroom</tspan></text>
+    <text x="1325" y="810" class="label label-small">Bathroom</text>
+    <text x="1650" y="810" class="label label-small">Closet</text>
     <text x="940" y="670" class="label label-tiny">▲▼ STAIRS</text>
   </g>
 

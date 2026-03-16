@@ -1,6 +1,7 @@
 /**
  * WiFi CSI Dashboard Configuration
  * Floor layout, room definitions, and connection topology for simulation and rendering.
+ * Based on actual floor plans of 14 Charleston Drive.
  */
 
 export const CONFIG = {
@@ -15,56 +16,56 @@ export const CONFIG = {
     maxPersonCount: 4,
   },
 
-  // Floor definitions — Phase 1 focuses on floor 1
+  // Floor definitions — Phase 1 focuses on floor 1 (1st Floor / main level)
   floors: [
     {
       id: 1,
-      name: 'Ground Floor',
+      name: '1st Floor',
       // Coordinate system: meters from top-left origin
       width: 18.0,   // ~60 ft
       height: 10.5,  // ~35 ft
       svgPath: 'assets/floorplans/floor1.svg',
       rooms: {
-        living_room:  { x: 0,    y: 0,    w: 7.0,  h: 5.5,  label: 'Living Room' },
-        kitchen:      { x: 7.0,  y: 0,    w: 5.5,  h: 5.5,  label: 'Kitchen' },
-        dining:       { x: 12.5, y: 0,    w: 5.5,  h: 5.5,  label: 'Dining Room' },
-        hallway:      { x: 5.0,  y: 5.5,  w: 8.0,  h: 2.0,  label: 'Hallway' },
-        garage:       { x: 0,    y: 5.5,  w: 5.0,  h: 5.0,  label: 'Garage' },
-        bathroom:     { x: 13.0, y: 5.5,  w: 3.0,  h: 2.5,  label: 'Bathroom' },
-        laundry:      { x: 13.0, y: 8.0,  w: 3.0,  h: 2.5,  label: 'Laundry' },
-        entry:        { x: 16.0, y: 5.5,  w: 2.0,  h: 5.0,  label: 'Entry' },
+        garage:       { x: 0,     y: 0,    w: 5.5,  h: 5.5,  label: 'Garage' },
+        family_room:  { x: 5.5,   y: 0,    w: 7.0,  h: 5.5,  label: 'Family Room' },
+        kitchen:      { x: 12.5,  y: 0,    w: 5.5,  h: 5.5,  label: 'Kitchen' },
+        hallway:      { x: 5.5,   y: 5.5,  w: 7.0,  h: 2.0,  label: 'Hallway' },
+        dining:       { x: 0,     y: 5.5,  w: 5.5,  h: 5.0,  label: 'Dining Room' },
+        utility:      { x: 12.5,  y: 5.5,  w: 2.5,  h: 2.5,  label: 'Utility' },
+        office:       { x: 12.5,  y: 8.0,  w: 2.5,  h: 2.5,  label: 'Office' },
+        parlor:       { x: 15.0,  y: 5.5,  w: 3.0,  h: 5.0,  label: 'Parlor' },
       },
       // Waypoints: navigable points (doorways, room centers) for pathfinding
-      // Each has a position and list of connected waypoint IDs
       waypoints: {
-        living_center:  { x: 3.5,  y: 2.75, connections: ['living_door'] },
-        living_door:    { x: 6.5,  y: 2.75, connections: ['living_center', 'kitchen_door', 'hall_west'] },
-        kitchen_door:   { x: 7.5,  y: 2.75, connections: ['living_door', 'kitchen_center', 'hall_mid'] },
-        kitchen_center: { x: 9.75, y: 2.75, connections: ['kitchen_door', 'dining_door'] },
-        dining_door:    { x: 12.0, y: 2.75, connections: ['kitchen_center', 'dining_center', 'hall_east'] },
-        dining_center:  { x: 15.25,y: 2.75, connections: ['dining_door'] },
-        hall_west:      { x: 6.0,  y: 6.5,  connections: ['living_door', 'garage_door', 'hall_mid'] },
-        hall_mid:       { x: 9.0,  y: 6.5,  connections: ['hall_west', 'hall_east', 'kitchen_door'] },
-        hall_east:      { x: 12.5, y: 6.5,  connections: ['hall_mid', 'bathroom_door', 'entry_door', 'dining_door'] },
-        garage_door:    { x: 4.5,  y: 6.0,  connections: ['hall_west', 'garage_center'] },
-        garage_center:  { x: 2.5,  y: 8.0,  connections: ['garage_door'] },
-        bathroom_door:  { x: 13.5, y: 6.0,  connections: ['hall_east', 'bathroom_center', 'laundry_door'] },
-        bathroom_center:{ x: 14.5, y: 6.75, connections: ['bathroom_door'] },
-        laundry_door:   { x: 13.5, y: 8.5,  connections: ['bathroom_door', 'laundry_center'] },
-        laundry_center: { x: 14.5, y: 9.25, connections: ['laundry_door'] },
-        entry_door:     { x: 16.5, y: 6.0,  connections: ['hall_east', 'entry_center'] },
-        entry_center:   { x: 17.0, y: 8.0,  connections: ['entry_door'] },
+        garage_center:  { x: 2.75, y: 2.75, connections: ['garage_door'] },
+        garage_door:    { x: 5.25, y: 2.75, connections: ['garage_center', 'family_center'] },
+        family_center:  { x: 9.0,  y: 2.75, connections: ['garage_door', 'family_door', 'kitchen_door'] },
+        kitchen_door:   { x: 12.25,y: 2.75, connections: ['family_center', 'kitchen_center'] },
+        kitchen_center: { x: 15.25,y: 2.75, connections: ['kitchen_door', 'kitchen_hall'] },
+        kitchen_hall:   { x: 11.0, y: 5.5,  connections: ['kitchen_center', 'hall_mid'] },
+        family_door:    { x: 7.25, y: 5.5,  connections: ['family_center', 'hall_west'] },
+        hall_west:      { x: 7.0,  y: 6.5,  connections: ['family_door', 'hall_mid', 'dining_door'] },
+        hall_mid:       { x: 9.5,  y: 6.5,  connections: ['hall_west', 'hall_east', 'kitchen_hall'] },
+        hall_east:      { x: 12.0, y: 6.5,  connections: ['hall_mid', 'utility_door', 'parlor_door'] },
+        dining_door:    { x: 2.75, y: 5.5,  connections: ['hall_west', 'dining_center'] },
+        dining_center:  { x: 2.75, y: 8.0,  connections: ['dining_door'] },
+        utility_door:   { x: 12.75,y: 6.0,  connections: ['hall_east', 'utility_center', 'office_door'] },
+        utility_center: { x: 13.75,y: 6.75, connections: ['utility_door'] },
+        office_door:    { x: 13.5, y: 8.0,  connections: ['utility_door', 'office_center'] },
+        office_center:  { x: 13.75,y: 9.25, connections: ['office_door'] },
+        parlor_door:    { x: 15.25,y: 7.0,  connections: ['hall_east', 'parlor_center'] },
+        parlor_center:  { x: 16.5, y: 8.0,  connections: ['parlor_door'] },
       },
       // Base signal quality per zone (modified by simulator noise)
       baseSignalQuality: {
-        living_room: 0.88,
-        kitchen:     0.82,
-        dining:      0.75,
-        hallway:     0.60,
         garage:      0.45,
-        bathroom:    0.55,
-        laundry:     0.50,
-        entry:       0.65,
+        family_room: 0.85,
+        kitchen:     0.70,
+        hallway:     0.88,
+        dining:      0.55,
+        utility:     0.60,
+        office:      0.50,
+        parlor:      0.48,
       },
     },
   ],
@@ -77,20 +78,20 @@ export const CONFIG = {
 export const DEMO_SCENARIOS = {
   morning_routine: {
     name: 'Morning Routine',
-    description: 'One person wakes up (simulated on ground floor), walks to kitchen, makes coffee, sits at dining table.',
+    description: 'One person walks from family room to kitchen, makes coffee, sits in dining room.',
     people: [
       {
         id: 'p1',
-        startWaypoint: 'living_center',
+        startWaypoint: 'family_center',
         actions: [
           { type: 'idle', duration: 5, activity: 'sleeping' },
           { type: 'move', to: 'kitchen_center' },
           { type: 'idle', duration: 8, activity: 'standing' },
           { type: 'move', to: 'dining_center' },
           { type: 'idle', duration: 20, activity: 'sitting' },
-          { type: 'move', to: 'bathroom_center' },
+          { type: 'move', to: 'utility_center' },
           { type: 'idle', duration: 5, activity: 'standing' },
-          { type: 'move', to: 'living_center' },
+          { type: 'move', to: 'family_center' },
           { type: 'idle', duration: 30, activity: 'sitting' },
         ],
       },
@@ -98,7 +99,7 @@ export const DEMO_SCENARIOS = {
   },
   family_evening: {
     name: 'Family Evening',
-    description: 'Two people: one cooking in kitchen, one in living room. They converge in dining room.',
+    description: 'Two people: one cooking in kitchen, one in family room. They converge in dining room.',
     people: [
       {
         id: 'p1',
@@ -113,12 +114,12 @@ export const DEMO_SCENARIOS = {
       },
       {
         id: 'p2',
-        startWaypoint: 'living_center',
+        startWaypoint: 'family_center',
         actions: [
           { type: 'idle', duration: 12, activity: 'sitting' },
           { type: 'move', to: 'dining_center' },
           { type: 'idle', duration: 20, activity: 'sitting' },
-          { type: 'move', to: 'living_center' },
+          { type: 'move', to: 'family_center' },
           { type: 'idle', duration: 15, activity: 'sitting' },
         ],
       },
@@ -126,16 +127,16 @@ export const DEMO_SCENARIOS = {
   },
   full_house: {
     name: 'Full House',
-    description: 'Four people scattered across the ground floor doing different activities.',
+    description: 'Four people scattered across the 1st floor doing different activities.',
     people: [
       {
         id: 'p1',
-        startWaypoint: 'living_center',
+        startWaypoint: 'family_center',
         actions: [
           { type: 'idle', duration: 20, activity: 'sitting' },
           { type: 'move', to: 'kitchen_center' },
           { type: 'idle', duration: 10, activity: 'standing' },
-          { type: 'move', to: 'living_center' },
+          { type: 'move', to: 'family_center' },
         ],
       },
       {
@@ -154,17 +155,17 @@ export const DEMO_SCENARIOS = {
         startWaypoint: 'dining_center',
         actions: [
           { type: 'idle', duration: 25, activity: 'sitting' },
-          { type: 'move', to: 'bathroom_center' },
-          { type: 'idle', duration: 5, activity: 'standing' },
+          { type: 'move', to: 'parlor_center' },
+          { type: 'idle', duration: 10, activity: 'sitting' },
           { type: 'move', to: 'dining_center' },
         ],
       },
       {
         id: 'p4',
-        startWaypoint: 'entry_center',
+        startWaypoint: 'office_center',
         actions: [
-          { type: 'move', to: 'hall_east' },
-          { type: 'move', to: 'living_center' },
+          { type: 'idle', duration: 20, activity: 'sitting' },
+          { type: 'move', to: 'family_center' },
           { type: 'idle', duration: 30, activity: 'sitting' },
         ],
       },

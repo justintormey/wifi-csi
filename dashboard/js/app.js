@@ -1,9 +1,18 @@
 /**
  * WiFi CSI Dashboard — Main Application
  *
- * Initializes the WebSocket client with simulator fallback,
- * wires up all UI controls, and dispatches payloads to the
- * floor plan renderer and vitals panel.
+ * Sole entry point for the dashboard. Initializes the WebSocket client
+ * with simulator fallback, wires up all UI controls, and dispatches
+ * payloads to the floor plan renderer and vitals panel.
+ *
+ * Architecture decision: This file contains inline rendering for tracking
+ * dots, vitals, and floor plan loading rather than importing the standalone
+ * class modules (floorplan.js, tracker-overlay.js, vitals-panel.js,
+ * noise-overlay.js). Those modules exist as a richer canvas-based layer
+ * built in parallel but not yet integrated. The inline approach here uses
+ * DOM elements with CSS transitions for smooth 10Hz updates, which is
+ * sufficient for the current use case and avoids the complexity of
+ * synchronizing two rendering pipelines.
  */
 
 import { CONFIG, DEMO_SCENARIOS } from './config.js';
@@ -129,6 +138,9 @@ function buildPlaceholderFloorPlan(floor) {
 }
 
 // ── Coordinate Conversion ────────────────────────────────────
+// SVGs use preserveAspectRatio="xMidYMid meet", which letterboxes/pillarboxes
+// the content within the element. We must calculate the actual rendered area
+// and offset to correctly position tracking dots over the floor plan.
 
 function metersToPixels(x, y) {
   if (!floorplanSVG || !floorConfig) return null;
@@ -218,6 +230,10 @@ function renderPayload(payload) {
 
 // ── Tracking Dots ────────────────────────────────────────────
 
+// DOM element cache per tracked person. Elements are created on first
+// appearance and removed when the person leaves the payload. This avoids
+// DOM churn at 10Hz — elements are repositioned via CSS left/top with
+// a short transition for smooth interpolation between ticks.
 const activeDots = {};  // personId -> { dot, ring, label, trailSvg }
 const PERSON_COLORS = {
   p1: '#00fff7', p2: '#00ff88', p3: '#ff88ff', p4: '#ffaa00',
@@ -249,7 +265,9 @@ function updateTrackingDots(people) {
     trail.push({ px: pos.px, py: pos.py });
     if (trail.length > appState.trailMaxLength) trail.shift();
 
-    // Confidence class
+    // Confidence class — thresholds 0.5/0.75 map to CSS classes that control
+    // opacity and blur filter. Note: standalone tracker-overlay.js uses
+    // different thresholds (0.4/0.8) for its canvas rendering.
     let confClass = 'confidence-high';
     if (person.position_confidence < 0.5) confClass = 'confidence-low';
     else if (person.position_confidence < 0.75) confClass = 'confidence-medium';
@@ -350,6 +368,10 @@ function formatDuration(seconds) {
   return `${mins}m${secs}s`;
 }
 
+// Rebuilds the entire vitals panel innerHTML on every tick (10Hz).
+// This is a deliberate simplification — no incremental DOM diffing.
+// At 10Hz the browser reflows are fast enough for the panel's simple
+// structure, and full replacement avoids stale-state bugs.
 function updateVitalsPanel(people) {
   if (!dom.vitalsList) return;
 
@@ -427,14 +449,14 @@ function updateOccupancy(estimate, confidence) {
 // ── Signal Quality ───────────────────────────────────────────
 
 const ZONE_LABEL_MAP = {
-  living_room: 'Living',
-  kitchen: 'Kitchen',
-  dining: 'Dining',
-  hallway: 'Hallway',
   garage: 'Garage',
-  bathroom: 'Bath',
-  laundry: 'Laundry',
-  entry: 'Entry',
+  family_room: 'Family',
+  kitchen: 'Kitchen',
+  hallway: 'Hallway',
+  dining: 'Dining',
+  utility: 'Utility',
+  office: 'Office',
+  parlor: 'Parlor',
 };
 
 function updateSignalQuality(zoneQualities) {
@@ -622,6 +644,8 @@ function init() {
 }
 
 // ── Public API for other modules ─────────────────────────────
+// Exposed on window for console debugging and potential integration
+// with external tools or the standalone rendering modules.
 
 window.CSIDashboard = {
   appState,

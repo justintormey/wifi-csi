@@ -96,7 +96,7 @@ describe('Floor switching', () => {
       const zoneNames = Object.keys(overlay.clouds);
 
       // Should match floor 1 rooms
-      expect(zoneNames).toContain('living_room');
+      expect(zoneNames).toContain('family_room');
       expect(zoneNames).toContain('kitchen');
       expect(zoneNames).toContain('garage');
       expect(zoneNames).toContain('hallway');
@@ -110,7 +110,7 @@ describe('Floor switching', () => {
 
       const overlay = new NoiseOverlay(canvas, CONFIG.floors[0]);
 
-      expect(overlay.displayQualities.living_room).toBe(0.88);
+      expect(overlay.displayQualities.family_room).toBe(0.85);
       expect(overlay.displayQualities.garage).toBe(0.45);
     });
   });

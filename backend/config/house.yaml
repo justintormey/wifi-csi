@@ -1,42 +1,55 @@
 # House configuration for WiFi CSI tracking system.
+# Based on actual floor plans of 14 Charleston Drive.
 # Defines floor dimensions, TX channels, and stairwell transition zones.
 
 floors:
   1:
-    name: "Ground Floor"
+    name: "1st Floor"
     tx_channel: 1
     dimensions:
-      width_m: 15.0
-      depth_m: 12.0
+      width_m: 18.0
+      depth_m: 10.5
       height_m: 2.7
     rooms:
-      - name: "Kitchen"
-      - name: "Living Room"
       - name: "Garage"
+      - name: "Family Room"
+      - name: "Kitchen"
+      - name: "Dining Room"
+      - name: "Hallway"
+      - name: "Utility"
+      - name: "Office"
+      - name: "Parlor"
 
   2:
-    name: "Second Floor"
+    name: "2nd Floor"
     tx_channel: 6
     dimensions:
-      width_m: 15.0
-      depth_m: 12.0
+      width_m: 18.0
+      depth_m: 10.5
       height_m: 2.7
     rooms:
       - name: "Master Bedroom"
-      - name: "Bedroom 2"
+      - name: "Bedroom #1"
+      - name: "Bedroom #2"
+      - name: "Guest Bedroom"
       - name: "Bathroom"
+      - name: "Closet"
       - name: "Hallway"
 
   3:
-    name: "Third Floor / Attic"
+    name: "Basement"
     tx_channel: 11
     dimensions:
-      width_m: 12.0
-      depth_m: 10.0
+      width_m: 18.0
+      depth_m: 10.5
       height_m: 2.4
     rooms:
-      - name: "Office"
-      - name: "Media Room"
+      - name: "Workshop"
+      - name: "Bar Area"
+      - name: "Art Studio"
+      - name: "Recreation Area"
+      - name: "Storage"
+      - name: "Hallway"
 
 # Stairwell transition zones.
 # When a person is within a transition zone, the floor detector relaxes
@@ -45,17 +58,17 @@ transition_zones:
   - name: "Main Stairwell"
     floors: [1, 2]
     # Bounding box in floor coordinates (same x,y on both floors)
-    x_min: 7.0
-    x_max: 9.0
-    y_min: 5.0
-    y_max: 7.0
+    x_min: 8.5
+    x_max: 10.3
+    y_min: 5.6
+    y_max: 7.4
 
-  - name: "Upper Stairwell"
-    floors: [2, 3]
-    x_min: 7.0
-    x_max: 9.0
-    y_min: 5.0
-    y_max: 7.0
+  - name: "Basement Stairwell"
+    floors: [3, 1]
+    x_min: 8.5
+    x_max: 10.3
+    y_min: 5.6
+    y_max: 7.4
 
 # Cross-floor attenuation model (used for energy-based floor detection).
 attenuation:
