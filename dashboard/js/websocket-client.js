@@ -109,6 +109,7 @@ export class WebSocketClient {
   /** Force switch to simulator mode (e.g., user toggles demo mode) */
   startSimulator(mode, scenario) {
     this._clearTimers();
+    this._stopSimulator();
     if (this._ws) {
       this._ws.onopen = null;
       this._ws.onclose = null;
@@ -177,6 +178,11 @@ export class WebSocketClient {
   }
 
   // ── Internal: Reconnection with exponential backoff ─────────
+  // Backoff sequence: 1s → 2s → 4s → 8s → 16s → 30s → 30s → ...
+  // On the first failure, a 3-second fallback timer starts. If still
+  // reconnecting at 3s, the simulator activates as a data source while
+  // reconnect attempts continue in the background. This ensures the
+  // dashboard is never blank — either real data or simulated data flows.
 
   _handleConnectionFailure() {
     if (this._intentionallyClosed) return;
@@ -206,6 +212,10 @@ export class WebSocketClient {
   }
 
   // ── Internal: Heartbeat / stale connection detection ────────
+  // Sends a JSON ping every 15s. Any incoming message (not just a
+  // dedicated pong) resets the 10s stale timer. This works because
+  // a healthy connection with a real backend receives payloads at 10Hz,
+  // so any response within 10s proves the connection is alive.
 
   _startHeartbeat() {
     this._stopHeartbeat();
