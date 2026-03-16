@@ -301,3 +301,66 @@ class TestSensorConfigHash:
         h1 = compute_sensor_config_hash({"a": (1,), "b": (2,)})
         h2 = compute_sensor_config_hash({"b": (2,), "a": (1,)})
         assert h1 == h2
+
+
+# ---------------------------------------------------------------------------
+# Coverage gap tests — update validation and npz corruption paths
+# ---------------------------------------------------------------------------
+
+
+class TestFloorDBUpdateValidation:
+    """Cover fingerprint_db.py lines 103, 109 — wrong floor and wrong dim in update."""
+
+    def test_update_wrong_floor_raises(self):
+        db = FloorDB(floor=1)
+        db.add(Fingerprint(x=0, y=0, floor=1, feature_vector=np.ones(5)))
+        wrong_floor_fp = Fingerprint(x=1, y=1, floor=2, feature_vector=np.ones(5))
+        with pytest.raises(ValueError, match="does not match"):
+            db.update(0, wrong_floor_fp)
+
+    def test_update_wrong_feature_dim_raises(self):
+        db = FloorDB(floor=1)
+        db.add(Fingerprint(x=0, y=0, floor=1, feature_vector=np.ones(5)))
+        bad_dim_fp = Fingerprint(x=1, y=1, floor=1, feature_vector=np.ones(10))
+        with pytest.raises(ValueError, match="length"):
+            db.update(0, bad_dim_fp)
+
+
+class TestNpzValidationEdgeCases:
+    """Cover fingerprint_db.py lines 273, 284, 288 — npz corruption paths."""
+
+    def test_load_non2d_features_raises(self, tmp_path: Path):
+        np.savez(
+            tmp_path / "floor_1.npz",
+            positions=np.array([[0.0, 0.0]]),
+            features=np.array([0.1, 0.2, 0.3]),  # 1-D, should be 2-D
+            metadata=np.array([1, 0.0, 1.0]),
+            sensor_config_hash=np.array(["x"]),
+        )
+        db = FingerprintDB(tmp_path)
+        with pytest.raises(ValueError, match="features must be 2-D"):
+            db.load(floor=1)
+
+    def test_load_bad_metadata_shape_raises(self, tmp_path: Path):
+        np.savez(
+            tmp_path / "floor_1.npz",
+            positions=np.array([[0.0, 0.0]]),
+            features=np.array([[0.1, 0.2]]),
+            metadata=np.array([1, 0.0]),  # only 2 elements, need 3
+            sensor_config_hash=np.array(["x"]),
+        )
+        db = FingerprintDB(tmp_path)
+        with pytest.raises(ValueError, match="metadata must have 3 elements"):
+            db.load(floor=1)
+
+    def test_load_floor_tag_mismatch_raises(self, tmp_path: Path):
+        np.savez(
+            tmp_path / "floor_1.npz",
+            positions=np.array([[0.0, 0.0]]),
+            features=np.array([[0.1, 0.2]]),
+            metadata=np.array([99, 0.0, 1.0]),  # floor tag 99 != 1
+            sensor_config_hash=np.array(["x"]),
+        )
+        db = FingerprintDB(tmp_path)
+        with pytest.raises(ValueError, match="metadata floor tag"):
+            db.load(floor=1)

@@ -132,3 +132,31 @@ class TestDominantFrequency:
         # Peak may exist but SNR should be low
         if peak is not None:
             assert peak.snr_db < 15.0
+
+
+# ---------------------------------------------------------------------------
+# Coverage gap tests
+# ---------------------------------------------------------------------------
+
+from backend.vitals.windowed_fft import _snr_db, bpm_to_frequency, frequency_to_bpm
+
+
+class TestSNREdgeCases:
+    def test_noise_floor_zero_clipped(self):
+        """Cover line 79: when median noise is <= 0, clamp to 1e-12."""
+        # All zero spectrum except the peak — median of zeros = 0
+        spectrum = np.zeros(20)
+        spectrum[5] = 10.0  # single peak
+        snr = _snr_db(spectrum, peak_idx=5, guard_bins=2)
+        assert snr > 0  # should not error; uses 1e-12 as noise floor
+
+
+class TestBpmConversions:
+    def test_bpm_to_frequency(self):
+        """Cover line 306: bpm_to_frequency."""
+        assert bpm_to_frequency(60.0) == pytest.approx(1.0)
+        assert bpm_to_frequency(120.0) == pytest.approx(2.0)
+        assert bpm_to_frequency(0.0) == pytest.approx(0.0)
+
+    def test_roundtrip(self):
+        assert bpm_to_frequency(frequency_to_bpm(1.5)) == pytest.approx(1.5)

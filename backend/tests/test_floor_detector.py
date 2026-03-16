@@ -330,3 +330,42 @@ class TestConfigLoaders:
 
     def test_get_floor_ids_empty(self):
         assert get_floor_ids({}) == []
+
+
+# ---------------------------------------------------------------------------
+# Coverage gap tests
+# ---------------------------------------------------------------------------
+
+
+class TestFloorDetectorCoverageGaps:
+    """Cover floor_detector.py line 167: energy below min_energy_threshold."""
+
+    def test_low_energy_candidate_stays_on_current_floor(self):
+        """When candidate floor energy is below min threshold, don't switch.
+        Covers line 167: best_energy < min_energy_threshold → pass (keep current)."""
+        det = FloorDetector(
+            floor_ids=[1, 2],
+            min_energy_threshold=10.0,  # very high threshold
+            hysteresis_count=1,
+            window_samples=5,
+        )
+        rng = np.random.default_rng(42)
+
+        # First, establish floor 1 as current with strong energy (high variance)
+        for _ in range(5):
+            det.update({
+                1: rng.uniform(0.0, 20.0, size=52),  # high variance
+                2: rng.uniform(4.9, 5.1, size=52),    # low variance
+            })
+
+        # Now present floor 2 with slightly higher variance than floor 1,
+        # but both below the high min_energy_threshold
+        for _ in range(10):
+            result = det.update({
+                1: rng.uniform(4.99, 5.01, size=52),   # very low variance ~0
+                2: rng.uniform(4.95, 5.05, size=52),    # slightly more variance but still tiny
+            })
+
+        # Should stay on floor 1 because even though floor 2 might edge ahead,
+        # its energy is below the 10.0 threshold
+        assert result.detected_floor == 1

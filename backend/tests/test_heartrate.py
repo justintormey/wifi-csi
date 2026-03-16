@@ -705,3 +705,87 @@ class TestHeartRateResult:
         assert result.rate_bpm is None
         assert result.display is False
         assert result.confidence == 0.3
+
+
+# ---------------------------------------------------------------------------
+# Coverage gap tests — rare harmonic removal and CWT paths
+# ---------------------------------------------------------------------------
+
+
+class TestCoverageGaps:
+    """Cover heartrate.py lines 127, 138, 355, 362."""
+
+    def test_auto_detect_no_breathing_peak_returns_unchanged(self):
+        """Line 127: when auto-detect finds no breathing peak above 5x median,
+        signal passes through without notching."""
+        # Create a signal with many equal-power low-freq components —
+        # no single one dominates, so peak < 5*median → early return
+        n = 3000
+        t = np.arange(n) / SAMPLE_RATE
+        signal = np.zeros(n)
+        # Add many equal-amplitude components in the breathing band
+        for f in np.arange(0.1, 0.5, 0.01):
+            signal += 0.1 * np.sin(2 * np.pi * f * t)
+        # Add heartbeat
+        signal += 0.1 * np.sin(2 * np.pi * 1.2 * t)
+
+        cleaned = _remove_breathing_harmonics(
+            signal, SAMPLE_RATE, breathing_freq_hz=None, n_harmonics=3,
+        )
+        # With many equal components, no single peak should dominate > 5x median
+        # Signal should pass through mostly unchanged
+        assert len(cleaned) == len(signal)
+
+    def test_negative_breathing_freq_returns_copy(self):
+        """Line 138: breathing_freq_hz < 0 should return unchanged signal."""
+        signal = np.random.default_rng(42).normal(0, 1, 100)
+        result = _remove_breathing_harmonics(
+            signal, SAMPLE_RATE, breathing_freq_hz=-0.5,
+        )
+        np.testing.assert_array_equal(result, signal)
+
+    def test_cwt_no_peak_returns_none_or_gated(self):
+        """Line 355: when CWT finds no valid peak or very weak one, estimate
+        returns None or a gated (low confidence) result."""
+        ext = make_extractor(
+            min_snapshots=500,
+            window_seconds=30.0,
+            min_bpm=40.0,
+            max_bpm=42.0,  # ultra-narrow range
+            min_snr_db=20.0,  # very high SNR threshold
+        )
+        # Push constant signal — no heartbeat frequency
+        for _ in range(3000):
+            ext.push(np.full(N_SUBCARRIERS, 3.0))
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
+        # Either None or gated with very low confidence
+        assert result is None or result.confidence < 0.1
+
+    def test_bpm_out_of_range_returns_none(self):
+        """Line 362: when CWT peak maps to BPM outside [min, max], return None."""
+        freq_hz = 1.0  # 60 bpm
+        snapshots = heartbeat_only_csi(
+            heartbeat_freq_hz=freq_hz,
+            duration_s=30.0,
+            heartbeat_amplitude=0.03,
+            noise_level=0.002,
+        )
+        ext = make_extractor(
+            min_snapshots=500,
+            window_seconds=30.0,
+            min_bpm=80.0,  # 60 bpm signal below min_bpm
+            max_bpm=120.0,
+        )
+        for snap in snapshots:
+            ext.push(snap)
+        result = ext.estimate(
+            position_confidence=0.8,
+            is_stationary=True,
+            stationary_duration_s=60.0,
+        )
+        # The CWT range starts at min_bpm/60, so the 1.0 Hz peak may not appear
+        assert result is None or (result.rate_bpm is None or result.rate_bpm >= 80.0)

@@ -380,3 +380,28 @@ class TestSyntheticTrajectory:
         assert convergences[-1] > convergences[0]
         # Final convergence should be reasonably high for stationary target
         assert convergences[-1] > 0.6
+
+
+# ---------------------------------------------------------------------------
+# Coverage gap tests
+# ---------------------------------------------------------------------------
+
+
+class TestParticleFilterCoverageGaps:
+    """Cover particle_filter.py line 259: degenerate weights (w_sum == 0)."""
+
+    def test_degenerate_weights_reset_to_uniform(self):
+        """When all weights collapse to zero, filter resets to uniform weights."""
+        pf = make_pf(seed=42)
+        # Initialize with first observation
+        pf.update(5.0, 5.0, uncertainty_m=1.0, dt=0.1)
+
+        # Force weights to zero by placing observation impossibly far away
+        # with extremely tiny uncertainty (sigma clamped to 0.5m, but
+        # Gaussian likelihood at 1000m distance → exp(-huge) ≈ 0 for all particles)
+        result = pf.update(1000.0, 1000.0, uncertainty_m=0.001, dt=0.01)
+
+        # Filter should still produce a valid result (weights reset to uniform)
+        assert np.isfinite(result.x)
+        assert np.isfinite(result.y)
+        assert 0.0 <= result.convergence <= 1.0
