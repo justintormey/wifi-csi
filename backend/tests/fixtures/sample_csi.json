@@ -1,0 +1,79 @@
+{
+  "_description": "Pre-generated CSI test fixtures for integration testing. Each entry represents a CSI packet with annotated expected processing outputs.",
+  "_format": {
+    "timestamp_us": "Microsecond timestamp (uint64)",
+    "tx_mac": "Transmitter MAC address",
+    "rx_mac": "Receiver MAC address",
+    "rssi": "Signal strength (dBm)",
+    "floor_id": "0-based floor identifier",
+    "iq_pairs": "Flat array of 228 int16 values: [I0, Q0, I1, Q1, ...]",
+    "expected": "Annotated expected outputs for validation"
+  },
+  "packets": [
+    {
+      "label": "floor1_baseline",
+      "timestamp_us": 0,
+      "tx_mac": "aa:bb:cc:dd:01:00",
+      "rx_mac": "aa:bb:cc:dd:01:01",
+      "rssi": -40,
+      "floor_id": 0,
+      "expected": {
+        "floor": 1,
+        "amplitude_mean_range": [45, 55],
+        "has_people": true
+      }
+    },
+    {
+      "label": "floor2_baseline",
+      "timestamp_us": 10000,
+      "tx_mac": "aa:bb:cc:dd:02:00",
+      "rx_mac": "aa:bb:cc:dd:02:01",
+      "rssi": -42,
+      "floor_id": 1,
+      "expected": {
+        "floor": 2,
+        "amplitude_mean_range": [45, 55],
+        "has_people": true
+      }
+    },
+    {
+      "label": "floor3_baseline",
+      "timestamp_us": 20000,
+      "tx_mac": "aa:bb:cc:dd:03:00",
+      "rx_mac": "aa:bb:cc:dd:03:01",
+      "rssi": -45,
+      "floor_id": 2,
+      "expected": {
+        "floor": 3,
+        "amplitude_mean_range": [45, 55],
+        "has_people": true
+      }
+    },
+    {
+      "label": "weak_signal",
+      "timestamp_us": 30000,
+      "tx_mac": "aa:bb:cc:dd:01:00",
+      "rx_mac": "aa:bb:cc:dd:01:02",
+      "rssi": -75,
+      "floor_id": 0,
+      "expected": {
+        "floor": 1,
+        "amplitude_mean_range": [8, 18],
+        "has_people": true
+      }
+    },
+    {
+      "label": "strong_signal",
+      "timestamp_us": 40000,
+      "tx_mac": "aa:bb:cc:dd:01:00",
+      "rx_mac": "aa:bb:cc:dd:01:03",
+      "rssi": -20,
+      "floor_id": 0,
+      "expected": {
+        "floor": 1,
+        "amplitude_mean_range": [70, 90],
+        "has_people": true
+      }
+    }
+  ]
+}
