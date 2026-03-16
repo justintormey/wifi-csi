@@ -1,0 +1,13 @@
+{
+  "name": "wifi-csi-dashboard-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.1",
+    "vitest": "^3.1.1"
+  }
+}
