@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Floor Plan Editor — WiFi CSI</title>
+  <link rel="stylesheet" href="css/editor.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- ═══ Header Bar ═══ -->
+    <header id="header">
+      <div class="header-left">
+        <span class="header-title">Floor Plan Editor</span>
+        <a href="index.html" class="header-link">← Dashboard</a>
+      </div>
+      <div class="header-controls">
+        <div class="floor-settings">
+          <label class="field-label">Name
+            <input type="text" id="floor-name" value="New Floor" class="field-input field-input-wide">
+          </label>
+          <label class="field-label">W (m)
+            <input type="number" id="floor-width" value="18" min="1" max="100" step="0.5" class="field-input">
+          </label>
+          <label class="field-label">H (m)
+            <input type="number" id="floor-height" value="10.5" min="1" max="100" step="0.5" class="field-input">
+          </label>
+        </div>
+        <div class="header-actions">
+          <label class="snap-toggle">
+            <input type="checkbox" id="snap-toggle" checked>
+            <span>Snap</span>
+          </label>
+        </div>
+      </div>
+    </header>
+
+    <!-- ═══ Left Panel: Tools ═══ -->
+    <aside id="tools-panel">
+      <div class="panel">
+        <div class="panel-title">Tools</div>
+        <div class="tool-palette">
+          <button class="tool-btn active" data-tool="select" title="Select / Move (V)">
+            <span class="tool-icon">⊹</span><span class="tool-name">Select</span>
+          </button>
+          <button class="tool-btn" data-tool="room" title="Draw Room (R)">
+            <span class="tool-icon">▢</span><span class="tool-name">Room</span>
+          </button>
+          <button class="tool-btn" data-tool="wall" title="Draw Wall (W)">
+            <span class="tool-icon">━</span><span class="tool-name">Wall</span>
+          </button>
+          <button class="tool-btn" data-tool="door" title="Draw Door (D)">
+            <span class="tool-icon">┊</span><span class="tool-name">Door</span>
+          </button>
+          <button class="tool-btn" data-tool="window" title="Draw Window (N)">
+            <span class="tool-icon">╍</span><span class="tool-name">Window</span>
+          </button>
+          <button class="tool-btn" data-tool="label" title="Place Label (L)">
+            <span class="tool-icon">A</span><span class="tool-name">Label</span>
+          </button>
+          <button class="tool-btn" data-tool="sensor" title="Place Sensor (S)">
+            <span class="tool-icon">◉</span><span class="tool-name">Sensor</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Wall Type</div>
+        <div class="radio-group" id="wall-type-group">
+          <label class="radio-label">
+            <input type="radio" name="wall-type" value="exterior" checked> Exterior
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="wall-type" value="interior"> Interior
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Sensor Type</div>
+        <div class="radio-group" id="sensor-type-group">
+          <label class="radio-label">
+            <input type="radio" name="sensor-type" value="tx" checked> TX
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="sensor-type" value="rx"> RX
+          </label>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Actions</div>
+        <div class="action-buttons">
+          <button class="action-btn" id="btn-undo" title="Undo (Ctrl+Z)">Undo</button>
+          <button class="action-btn" id="btn-redo" title="Redo (Ctrl+Y)">Redo</button>
+          <button class="action-btn danger" id="btn-delete" title="Delete (Del)">Delete</button>
+          <button class="action-btn" id="btn-clear" title="Clear All">Clear All</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">File</div>
+        <div class="action-buttons">
+          <button class="action-btn" id="btn-import">Import SVG</button>
+          <button class="action-btn primary" id="btn-export-svg">Export SVG</button>
+          <button class="action-btn" id="btn-export-config">Export Config</button>
+        </div>
+        <input type="file" id="file-import" accept=".svg" hidden>
+      </div>
+    </aside>
+
+    <!-- ═══ Main Canvas Area ═══ -->
+    <main id="main">
+      <div id="canvas-container">
+        <svg id="editor-svg" xmlns="http://www.w3.org/2000/svg">
+          <g id="viewport">
+            <g id="grid-layer"></g>
+            <g class="rooms" id="layer-rooms"></g>
+            <g class="walls" id="layer-walls"></g>
+            <g class="doors" id="layer-doors"></g>
+            <g class="windows" id="layer-windows"></g>
+            <g class="room-labels" id="layer-labels"></g>
+            <g class="sensors" id="layer-sensors"></g>
+            <g id="preview-layer"></g>
+          </g>
+        </svg>
+      </div>
+      <div id="canvas-info">
+        <span id="cursor-pos">0.0, 0.0 m</span>
+        <span class="info-sep">|</span>
+        <span id="zoom-level">100%</span>
+        <span class="info-sep">|</span>
+        <span id="element-count">0 elements</span>
+      </div>
+    </main>
+
+    <!-- ═══ Right Panel: Properties ═══ -->
+    <aside id="props-panel">
+      <div class="panel" id="selection-panel">
+        <div class="panel-title">Properties</div>
+        <div id="no-selection" class="props-empty">No element selected</div>
+        <div id="selection-props" hidden>
+          <div class="prop-group">
+            <label class="field-label">Type
+              <span id="prop-type" class="prop-readonly">—</span>
+            </label>
+          </div>
+          <div class="prop-group" id="prop-group-key">
+            <label class="field-label">Key
+              <input type="text" id="prop-key" class="field-input field-input-wide" placeholder="room_key">
+            </label>
+          </div>
+          <div class="prop-group" id="prop-group-label">
+            <label class="field-label">Label
+              <input type="text" id="prop-label" class="field-input field-input-wide" placeholder="Room Name">
+            </label>
+          </div>
+          <div class="prop-group" id="prop-group-rect">
+            <div class="prop-row">
+              <label class="field-label">X <input type="number" id="prop-x" class="field-input" step="0.1"></label>
+              <label class="field-label">Y <input type="number" id="prop-y" class="field-input" step="0.1"></label>
+            </div>
+            <div class="prop-row">
+              <label class="field-label">W <input type="number" id="prop-w" class="field-input" step="0.1" min="0.1"></label>
+              <label class="field-label">H <input type="number" id="prop-h" class="field-input" step="0.1" min="0.1"></label>
+            </div>
+          </div>
+          <div class="prop-group" id="prop-group-line">
+            <div class="prop-row">
+              <label class="field-label">X1 <input type="number" id="prop-x1" class="field-input" step="0.1"></label>
+              <label class="field-label">Y1 <input type="number" id="prop-y1" class="field-input" step="0.1"></label>
+            </div>
+            <div class="prop-row">
+              <label class="field-label">X2 <input type="number" id="prop-x2" class="field-input" step="0.1"></label>
+              <label class="field-label">Y2 <input type="number" id="prop-y2" class="field-input" step="0.1"></label>
+            </div>
+          </div>
+          <div class="prop-group" id="prop-group-circle">
+            <div class="prop-row">
+              <label class="field-label">CX <input type="number" id="prop-cx" class="field-input" step="0.1"></label>
+              <label class="field-label">CY <input type="number" id="prop-cy" class="field-input" step="0.1"></label>
+            </div>
+          </div>
+          <div class="prop-group" id="prop-group-subtype">
+            <label class="field-label">Subtype
+              <select id="prop-subtype" class="field-input field-input-wide">
+                <option value="exterior">Exterior</option>
+                <option value="interior">Interior</option>
+                <option value="garage">Garage</option>
+              </select>
+            </label>
+          </div>
+          <div class="prop-group" id="prop-group-sensor-type">
+            <label class="field-label">Sensor
+              <select id="prop-sensor-type" class="field-input field-input-wide">
+                <option value="tx">TX (Transmitter)</option>
+                <option value="rx">RX (Receiver)</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="config-preview-panel">
+        <div class="panel-title">Config Preview</div>
+        <textarea id="config-preview" readonly rows="12" class="config-textarea" placeholder="Export config to preview..."></textarea>
+        <button class="action-btn" id="btn-copy-config">Copy to Clipboard</button>
+      </div>
+    </aside>
+
+    <!-- ═══ Status Bar ═══ -->
+    <footer id="status-bar">
+      <span id="status-message">Ready</span>
+      <span id="status-keys">V: Select | R: Room | W: Wall | D: Door | N: Window | L: Label | S: Sensor | Space+Drag: Pan | Scroll: Zoom</span>
+    </footer>
+
+  </div>
+
+  <script type="module" src="js/editor.js"></script>
+</body>
+</html>

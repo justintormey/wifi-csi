@@ -1,0 +1,649 @@
+/* Floor Plan Editor — Sci-fi HUD Theme (self-contained) */
+
+:root {
+  --bg-primary: #0a0a1a;
+  --bg-secondary: #0d0d24;
+  --bg-panel: rgba(10, 10, 30, 0.85);
+  --cyan: #00ffff;
+  --cyan-dim: rgba(0, 255, 255, 0.3);
+  --cyan-glow: rgba(0, 255, 255, 0.15);
+  --green: #00ff88;
+  --green-dim: rgba(0, 255, 136, 0.3);
+  --amber: #ffaa00;
+  --red: #ff3366;
+  --text-primary: #e0e8ff;
+  --text-secondary: rgba(224, 232, 255, 0.6);
+  --border: rgba(0, 255, 255, 0.12);
+  --border-bright: rgba(0, 255, 255, 0.3);
+  --font-mono: 'Courier New', 'Consolas', monospace;
+}
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ═══ Layout: 3-column ═══ */
+#app {
+  display: grid;
+  grid-template-rows: 40px 1fr 28px;
+  grid-template-columns: 200px 1fr 260px;
+  grid-template-areas:
+    "header  header  header"
+    "tools   main    props"
+    "status  status  status";
+  width: 100%;
+  height: 100%;
+  gap: 1px;
+}
+
+/* ═══ Header ═══ */
+#header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-title {
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  text-shadow: 0 0 8px var(--cyan-glow);
+}
+
+.header-link {
+  font-size: 10px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  letter-spacing: 1px;
+  transition: color 0.2s;
+}
+
+.header-link:hover {
+  color: var(--cyan);
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.floor-settings {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* ═══ Field Inputs ═══ */
+.field-label {
+  font-size: 9px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.field-input {
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 6px;
+  border-radius: 2px;
+  outline: none;
+  width: 60px;
+  transition: border-color 0.15s;
+}
+
+.field-input:focus {
+  border-color: var(--cyan-dim);
+}
+
+.field-input-wide {
+  width: 100%;
+}
+
+/* Number input spinner */
+.field-input[type="number"] {
+  width: 58px;
+}
+
+/* ═══ Snap Toggle ═══ */
+.snap-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.snap-toggle input[type="checkbox"] {
+  appearance: none;
+  width: 32px;
+  height: 16px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+}
+
+.snap-toggle input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--text-secondary);
+  transition: all 0.2s;
+}
+
+.snap-toggle input[type="checkbox"]:checked {
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+
+.snap-toggle input[type="checkbox"]:checked::after {
+  left: 18px;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green-dim);
+}
+
+/* ═══ Left Panel: Tools ═══ */
+#tools-panel {
+  grid-area: tools;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.panel {
+  background: var(--bg-panel);
+  padding: 10px;
+}
+
+.panel-title {
+  font-size: 10px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ═══ Tool Palette ═══ */
+.tool-palette {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tool-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-radius: 2px;
+  text-align: left;
+}
+
+.tool-btn:hover {
+  border-color: var(--border);
+  color: var(--text-primary);
+  background: rgba(0, 255, 255, 0.02);
+}
+
+.tool-btn.active {
+  background: var(--cyan-glow);
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+.tool-icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+}
+
+.tool-name {
+  letter-spacing: 1px;
+}
+
+/* ═══ Radio Groups ═══ */
+.radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.radio-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.radio-label input[type="radio"] {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+}
+
+.radio-label input[type="radio"]:checked {
+  border-color: var(--cyan);
+}
+
+.radio-label input[type="radio"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan);
+}
+
+/* ═══ Action Buttons ═══ */
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.action-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 5px 10px;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  transition: all 0.15s;
+  border-radius: 2px;
+}
+
+.action-btn:hover {
+  border-color: var(--cyan-dim);
+  color: var(--cyan);
+  background: var(--cyan-glow);
+}
+
+.action-btn.primary {
+  border-color: var(--green-dim);
+  color: var(--green);
+}
+
+.action-btn.primary:hover {
+  background: rgba(0, 255, 136, 0.08);
+  border-color: var(--green);
+}
+
+.action-btn.danger {
+  color: var(--red);
+}
+
+.action-btn.danger:hover {
+  border-color: var(--red);
+  background: rgba(255, 51, 102, 0.08);
+}
+
+/* ═══ Main Canvas ═══ */
+#main {
+  grid-area: main;
+  position: relative;
+  background: var(--bg-primary);
+  overflow: hidden;
+}
+
+#canvas-container {
+  position: absolute;
+  inset: 0;
+  cursor: crosshair;
+}
+
+#editor-svg {
+  width: 100%;
+  height: 100%;
+}
+
+#canvas-info {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 12px;
+  background: rgba(10, 10, 30, 0.9);
+  font-size: 10px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+}
+
+.info-sep {
+  color: var(--border);
+}
+
+/* ═══ SVG Editor Styles ═══ */
+#editor-svg .room {
+  fill: rgba(0, 255, 255, 0.04);
+  stroke: rgba(0, 255, 255, 0.15);
+  stroke-width: 1;
+  cursor: pointer;
+}
+
+#editor-svg .room:hover {
+  fill: rgba(0, 255, 255, 0.08);
+}
+
+#editor-svg .room.selected {
+  stroke: var(--cyan);
+  stroke-width: 2;
+  stroke-dasharray: 6 3;
+}
+
+#editor-svg .wall {
+  stroke-width: 3;
+  stroke-linecap: round;
+  cursor: pointer;
+}
+
+#editor-svg .wall-exterior {
+  stroke: var(--cyan);
+  filter: drop-shadow(0 0 2px var(--cyan-glow));
+}
+
+#editor-svg .wall-interior {
+  stroke: var(--cyan-dim);
+}
+
+#editor-svg .wall.selected {
+  stroke-width: 5;
+  filter: drop-shadow(0 0 4px var(--cyan));
+}
+
+#editor-svg .door {
+  stroke: var(--green);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+#editor-svg .door-exterior {
+  opacity: 0.8;
+}
+
+#editor-svg .door-garage {
+  stroke: var(--amber);
+  stroke-width: 3;
+  stroke-dasharray: 6 4;
+  opacity: 0.5;
+}
+
+#editor-svg .door.selected {
+  opacity: 1;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 4px var(--green));
+}
+
+#editor-svg .window {
+  stroke: rgba(100, 180, 255, 0.4);
+  stroke-width: 3;
+  cursor: pointer;
+}
+
+#editor-svg .window.selected {
+  stroke: rgba(100, 180, 255, 0.8);
+  stroke-width: 5;
+  filter: drop-shadow(0 0 4px rgba(100, 180, 255, 0.5));
+}
+
+#editor-svg .label {
+  fill: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 24px;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  cursor: pointer;
+}
+
+#editor-svg .label.selected {
+  fill: var(--cyan);
+}
+
+#editor-svg .sensor {
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+#editor-svg .sensor-tx {
+  fill: var(--amber);
+  filter: drop-shadow(0 0 4px rgba(255, 170, 0, 0.4));
+}
+
+#editor-svg .sensor-rx {
+  fill: var(--cyan);
+  filter: drop-shadow(0 0 3px var(--cyan-glow));
+}
+
+#editor-svg .sensor.selected {
+  opacity: 1;
+  stroke: var(--text-primary);
+  stroke-width: 2;
+}
+
+/* Grid */
+#grid-layer line {
+  stroke: rgba(0, 255, 255, 0.04);
+  stroke-width: 0.5;
+}
+
+#grid-layer line.grid-major {
+  stroke: rgba(0, 255, 255, 0.08);
+  stroke-width: 1;
+}
+
+/* Preview layer (drawing in progress) */
+#preview-layer rect,
+#preview-layer line {
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+#preview-layer rect {
+  fill: rgba(0, 255, 255, 0.06);
+  stroke: var(--cyan);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+}
+
+#preview-layer line {
+  stroke: var(--cyan);
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+}
+
+/* ═══ Right Panel: Properties ═══ */
+#props-panel {
+  grid-area: props;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.props-empty {
+  font-size: 11px;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  font-style: italic;
+  padding: 8px 0;
+}
+
+.prop-readonly {
+  font-size: 11px;
+  color: var(--cyan);
+  display: block;
+  margin-top: 2px;
+}
+
+.prop-group {
+  margin-bottom: 8px;
+}
+
+.prop-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.prop-row .field-label {
+  flex: 1;
+}
+
+.prop-row .field-input {
+  width: 100%;
+}
+
+/* Config preview */
+.config-textarea {
+  width: 100%;
+  background: var(--bg-primary);
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 6px;
+  border-radius: 2px;
+  resize: vertical;
+  outline: none;
+  margin-bottom: 6px;
+}
+
+.config-textarea:focus {
+  border-color: var(--cyan-dim);
+}
+
+/* ═══ Status Bar ═══ */
+#status-bar {
+  grid-area: status;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+#status-keys {
+  font-size: 9px;
+  opacity: 0.6;
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 1280px) {
+  #app {
+    grid-template-columns: 170px 1fr 220px;
+  }
+}
+
+@media (max-width: 1024px) {
+  #app {
+    grid-template-columns: 160px 1fr 200px;
+  }
+}
+
+/* ═══ Select tool cursor ═══ */
+#canvas-container.tool-select {
+  cursor: default;
+}
+
+#canvas-container.tool-room,
+#canvas-container.tool-wall,
+#canvas-container.tool-door,
+#canvas-container.tool-window {
+  cursor: crosshair;
+}
+
+#canvas-container.tool-label,
+#canvas-container.tool-sensor {
+  cursor: cell;
+}
+
+#canvas-container.panning {
+  cursor: grab;
+}
+
+#canvas-container.panning:active {
+  cursor: grabbing;
+}
