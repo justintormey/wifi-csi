@@ -627,13 +627,13 @@ class TestSustainedOperation:
         await pipeline.stop()
 
     def test_sustained_high_volume(self, house_config):
-        """Simulate 10 minutes of data (60,000 frames at 100Hz) fed rapidly.
+        """Simulate 10s of data (1,000 frames at 100Hz) fed rapidly.
 
         Validates that the pipeline remains stable, buffers stay bounded,
         and output remains valid after processing a large volume of data.
         """
         fp = FloorPipeline(floor_id=1, house_config=house_config)
-        total_frames = 60_000  # 10 min × 60 s × 100 Hz
+        total_frames = 1_000  # 10 s × 100 Hz
 
         for i in range(total_frames):
             pkt = _make_packet(

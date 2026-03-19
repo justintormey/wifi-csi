@@ -57,6 +57,14 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - Research: signal processing validation document written
 
 ### Recently Completed
+- ✅ Phase 9 — Vital Signs Tuning infrastructure (HAL-161) (2026-03-19):
+  - `backend/config/vitals.yaml` — Centralized ~25 tunable parameters for breathing, heart rate, and motion detection
+  - `backend/config/vitals_config.py` — Config loader with typed dataclasses and factory methods for creating pre-configured extractors
+  - `tools/vitals_benchmark.py` — Evaluation script: scores algorithms against recorded CSI data with ground truth, supports `--synthetic` self-test
+  - `backend/tests/test_vitals_config.py` — 15 tests for config loading, defaults, custom overrides, factory propagation
+  - Wired `VitalsConfig` into `FloorPipeline` and `Pipeline` in `main.py` — extractors created from config instead of hardcoded defaults
+  - **Blocked on real hardware data** — tuning infrastructure ready, actual parameter optimization awaits ESP32-S3 deployment
+  - 653 tests passing (15 new)
 - ✅ Phase 8 — Calibration System (HAL-156) complete (2026-03-19):
   - `backend/calibration/collector.py` — Guided calibration walk collector with state machine (IDLE/COLLECTING/POINT_ACTIVE/PAUSED/COMPLETE), serpentine grid generation, inline feature extraction, save/load, progress tracking, house.yaml integration, 55 tests (HAL-157)
   - `backend/calibration/builder.py` — `FingerprintBuilder` class with global subcarrier selection, quality metrics (SNR/variance/confidence), low-quality flagging, LOO cross-validation, JSON loading, 26 tests (HAL-158)
@@ -110,4 +118,4 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - **Recommended board:** ESP32-S3-DevKitC-1 (N16R8) — 16MB flash, 8MB PSRAM
 
 ---
-*Last updated: 2026-03-19 — Phase 8 Calibration System (HAL-156) complete. Three calibration modules (collector, builder, zone_recal) with full REST API and 102 tests. All documentation tasks also complete.*
+*Last updated: 2026-03-19 — Phase 9 Vital Signs Tuning infrastructure complete (HAL-161). Centralized vitals config, benchmark script, 15 new tests. Blocked on real hardware data for actual parameter tuning. 653 total tests passing.*

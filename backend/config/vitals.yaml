@@ -1,0 +1,66 @@
+# Vital signs tuning configuration for WiFi CSI pipeline.
+#
+# All tunable parameters for breathing, heart rate, and motion detection
+# are centralized here. Edit this file to tune algorithms — no code changes
+# needed. The pipeline loads these values at startup via load_vitals_config().
+#
+# Parameter documentation is inline. Values shown are initial defaults based
+# on literature review; tune against real CSI data + reference devices.
+
+# ── Global ──────────────────────────────────────────────────────────────────
+
+sample_rate_hz: 100.0  # CSI sample rate from ESP32-S3
+
+# ── Breathing Rate Extraction ───────────────────────────────────────────────
+
+breathing:
+  window_seconds: 30.0          # FFT analysis window length
+  top_k_subcarriers: 15         # number of highest-variance subcarriers to average
+  min_bpm: 8.0                  # reject estimated rates below this
+  max_bpm: 30.0                 # reject estimated rates above this
+  min_snr_db: 3.0               # minimum in-band SNR to produce a result
+  snr_saturation_db: 20.0       # SNR at which confidence reaches 1.0
+  min_concentration: 0.15       # minimum spectral concentration (peak power / total band)
+  filter_order: 4               # Butterworth bandpass order
+  min_snapshots: 500            # minimum CSI snapshots before estimation (~5s at 100Hz)
+
+# ── Heart Rate Extraction ───────────────────────────────────────────────────
+
+heartrate:
+  window_seconds: 30.0          # CWT analysis window length
+  top_k_subcarriers: 10         # number of highest-variance subcarriers to average
+  min_bpm: 40.0                 # reject estimated rates below this
+  max_bpm: 120.0                # reject estimated rates above this
+  min_snr_db: 3.0               # minimum CWT peak SNR for display gate
+  snr_saturation_db: 15.0       # SNR at which confidence reaches 1.0
+  filter_order: 4               # Butterworth bandpass order
+  min_snapshots: 500            # minimum CSI snapshots before estimation
+  cwt_num_freqs: 64             # number of frequency bins in CWT
+  cwt_omega0: 6.0               # Morlet wavelet omega0 (higher = narrower time, better freq)
+  breathing_harmonics: 3        # number of breathing harmonics to notch out
+
+  # Display gating — all must pass for heart rate to be shown
+  gates:
+    position_confidence: 0.6    # minimum position confidence from tracker
+    stationary_seconds: 30.0    # minimum continuous stillness (seconds)
+
+  # Rate limiting — CWT is expensive, don't run every snapshot
+  min_interval_seconds: 1.0     # minimum seconds between CWT computations
+
+# ── Motion Detection ────────────────────────────────────────────────────────
+
+motion:
+  threshold: 0.15               # motion_level above this → person is moving
+  window_size: 50               # CSI snapshots in the variance sliding window
+  min_snapshots: 5              # minimum snapshots before classification
+  baseline_ema_alpha: 0.01      # EMA smoothing for adaptive baseline (lower = smoother)
+
+# ── Frequency Bands (Hz) ───────────────────────────────────────────────────
+# These define the bandpass filter cutoffs used by the amplitude filter.
+# Changing these also affects which frequency ranges the vital sign
+# extractors search for peaks in.
+
+bands:
+  movement: [0.5, 5.0]
+  breathing: [0.1, 0.5]
+  heartrate: [0.8, 2.0]

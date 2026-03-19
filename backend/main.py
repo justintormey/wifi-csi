@@ -48,6 +48,7 @@ from backend.tracker.fingerprint_db import FloorDB
 from backend.tracker.localization import localize
 from backend.tracker.occupancy import OccupancyDetector
 from backend.tracker.particle_filter import FloorBounds, ParticleFilter
+from backend.config.vitals_config import VitalsConfig, load_vitals_config
 from backend.vitals.breathing import BreathingExtractor
 from backend.vitals.heartrate import HeartRateExtractor
 from backend.vitals.motion_detector import MotionDetector
@@ -91,10 +92,12 @@ class FloorPipeline:
         floor_id: int,
         house_config: dict[str, Any],
         floor_db: Optional[FloorDB] = None,
+        vitals_config: Optional[VitalsConfig] = None,
     ) -> None:
         self.floor_id = floor_id
         self.floor_db = floor_db
         self.bounds = FloorBounds.from_house_config(house_config, floor_id)
+        self._vitals_config = vitals_config or VitalsConfig()
 
         # Per-person state (keyed by person ID string)
         self.particle_filters: dict[str, ParticleFilter] = {}
@@ -123,14 +126,15 @@ class FloorPipeline:
 
     def _get_or_create_person(self, person_id: str) -> None:
         """Ensure per-person stateful modules exist."""
+        cfg = self._vitals_config
         if person_id not in self.particle_filters:
             self.particle_filters[person_id] = ParticleFilter(bounds=self.bounds)
         if person_id not in self.motion_detectors:
-            self.motion_detectors[person_id] = MotionDetector()
+            self.motion_detectors[person_id] = cfg.create_motion_detector()
         if person_id not in self.breathing_extractors:
-            self.breathing_extractors[person_id] = BreathingExtractor()
+            self.breathing_extractors[person_id] = cfg.create_breathing_extractor()
         if person_id not in self.heartrate_extractors:
-            self.heartrate_extractors[person_id] = HeartRateExtractor()
+            self.heartrate_extractors[person_id] = cfg.create_heartrate_extractor()
 
     def process_packet(self, packet: CsiPacket) -> None:
         """Process a single CSI packet through the floor pipeline.
@@ -381,10 +385,12 @@ class Pipeline:
         house_config: dict[str, Any],
         sensors_config: dict[str, Any],
         simulate: bool = False,
+        vitals_config: Optional[VitalsConfig] = None,
     ) -> None:
         self.house_config = house_config
         self.sensors_config = sensors_config
         self.simulate = simulate
+        self.vitals_config = vitals_config
 
         # Per-floor pipelines
         floor_ids = get_floor_ids(house_config)
@@ -393,6 +399,7 @@ class Pipeline:
             self.floor_pipelines[fid] = FloorPipeline(
                 floor_id=fid,
                 house_config=house_config,
+                vitals_config=vitals_config,
             )
 
         # Floor detector (cross-floor)
@@ -589,6 +596,12 @@ async def lifespan_with_pipeline(app_instance):
     # Load configs
     house_config = _load_config("house.yaml")
     sensors_config = _load_config("sensors.yaml")
+    try:
+        vitals_config = load_vitals_config()
+        logger.info("Loaded vitals tuning config from vitals.yaml")
+    except FileNotFoundError:
+        vitals_config = VitalsConfig()
+        logger.info("No vitals.yaml found, using default parameters")
 
     # Initialize app state (mirrors the original lifespan)
     state = get_app_state()
@@ -605,6 +618,7 @@ async def lifespan_with_pipeline(app_instance):
         house_config=house_config,
         sensors_config=sensors_config,
         simulate=simulate,
+        vitals_config=vitals_config,
     )
     await _pipeline.start()
 

@@ -99,7 +99,7 @@ class TestSensorMetrics:
         m = SensorMetrics(rx_mac="aa:bb:cc:dd:01:01")
         assert m.packets_total == 0
         assert m.packets_per_sec == 0.0
-        assert m.error_rate == 0.0
+        assert m.malformed_rate == 0.0
         assert m.latency_s == 0.0
 
     def test_record_packet_increments(self):
@@ -118,26 +118,25 @@ class TestSensorMetrics:
         # Should be ~10 pps (9 intervals over 0.9s)
         assert 9.0 < rate < 11.0
 
-    def test_error_rate(self):
+    def test_malformed_rate(self):
         m = SensorMetrics(rx_mac="test")
         m.record_packet(1.0)
         m.record_packet(2.0)
         m.record_malformed()
-        # 2 good + 1 bad = 1/3 error rate
-        assert abs(m.error_rate - 1 / 3) < 0.01
+        # 2 good + 1 bad = 1/3 malformed rate
+        assert abs(m.malformed_rate - 1 / 3) < 0.01
 
-    def test_error_rate_no_packets(self):
+    def test_malformed_rate_no_packets(self):
         m = SensorMetrics(rx_mac="test")
-        assert m.error_rate == 0.0
+        assert m.malformed_rate == 0.0
 
-    def test_rate_window_trimming(self):
+    def test_deque_maxlen_eviction(self):
         m = SensorMetrics(rx_mac="test")
-        # Record packets spread over 10 seconds
-        for i in range(100):
-            m.record_packet(100.0 + i * 0.1)  # 0.1s apart over 10s
-        # Only the last 5s window should be counted
-        # Timestamps from 105.0–109.9 (about 50 entries)
-        assert len(m._recent_timestamps) <= 51
+        # Record more packets than the deque maxlen (500)
+        for i in range(600):
+            m.record_packet(100.0 + i * 0.1)
+        # deque(maxlen=500) auto-evicts oldest entries
+        assert len(m._recent_timestamps) == 500
 
     def test_first_seen_not_overwritten(self):
         m = SensorMetrics(rx_mac="test")
