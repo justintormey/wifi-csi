@@ -51,13 +51,22 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - ✅ WiFi STA initialization and CSI config — status LED driver (3 blink patterns via FreeRTOS task), WiFi watchdog (auto-restart after 30s disconnect), MAC address logging for sensor registration, Kconfig options for LED GPIO and watchdog timeout (2026-03-15, HAL-145)
 - ✅ Firmware TX mode — esp_timer-based 100Hz UDP unicast with non-blocking socket, rate logging (actual pps every 10s), sequence counter payload (2026-03-15, HAL-148)
 - ✅ RPi deployment setup — Idempotent setup script (Mosquitto, Python venv, systemd service with security hardening, Avahi mDNS csi-hub.local, logrotate, fingerprint backup/restore cron, monitoring tools), full deploy/ directory with README (2026-03-15, HAL-153)
+- ✅ Dashboard WebSocket scenario tests — 23 integration tests using scripted WS message sequences: walk-through with confidence transitions, signal quality degradation/recovery, disconnect/reconnect state continuity, floor switching, demo mode replay, sustained 10Hz load + frame budget (2026-03-15, HAL-168)
 
 ### In Progress
 - Research: signal processing validation document written
 
+### Recently Completed
+- ✅ Phase 8 — Calibration System (HAL-156) complete (2026-03-19):
+  - `backend/calibration/collector.py` — Guided calibration walk collector with state machine (IDLE/COLLECTING/POINT_ACTIVE/PAUSED/COMPLETE), serpentine grid generation, inline feature extraction, save/load, progress tracking, house.yaml integration, 55 tests (HAL-157)
+  - `backend/calibration/builder.py` — `FingerprintBuilder` class with global subcarrier selection, quality metrics (SNR/variance/confidence), low-quality flagging, LOO cross-validation, JSON loading, 26 tests (HAL-158)
+  - `backend/calibration/zone_recal.py` — Zone recalibration with bounding box operations (find/remove/replace fingerprints), serpentine grid generation, 21 tests (HAL-159)
+  - `backend/server/app.py` — Full calibration REST API: start/pause/resume/cancel sessions, submit/skip points, build fingerprint DB, zone recalibration, status queries
+  - `backend/server/schemas.py` — Pydantic models for all calibration endpoints
+  - 102 calibration tests passing, 405 total tests passing
+
 ### Not Started
 - Firmware MQTT client implementation (binary publish + reconnect)
-- Calibration system (guided walk, fingerprint DB builder)
 - Wiring standalone rendering modules into app.js (floor 2/3 config, noise overlay, sparklines)
 
 ## Unfinished Work
@@ -69,26 +78,28 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 4. Build FastAPI + WebSocket server
 5. Write ESP32-S3 firmware (STA mode, HT40 CSI, MQTT)
 
-### Documentation Tasks
+### Documentation Tasks (Phase 11 — HAL-170: COMPLETE as of 2026-03-16)
 - [x] HAL-205: Dashboard README — completed 2026-03-15
 - [x] HAL-150/HAL-245: ESP32-S3 schematics and BOM — completed 2026-03-15 (`docs/hardware-bom.md`)
 - [x] HAL-268/HAL-173: Architecture and algorithms doc — completed 2026-03-15 (`docs/architecture.md`)
 - [x] HAL-110: Dashboard README + code commentary — completed 2026-03-15 (comprehensive README rewrite, architecture comments in all 7 JS modules)
-- [ ] HAL-171/HAL-266: Hardware setup guide — todo
-- [ ] HAL-172/HAL-267: Calibration guide — todo
-- [ ] HAL-174/HAL-269: GitHub README — depends on dashboard screenshots
-- [ ] HAL-175/HAL-270: Installation guide (RPi + ESP32 flashing) — todo
-- [ ] HAL-176/HAL-271: Code commentary for all modules — blocked on backend code completion
-- [ ] HAL-191/HAL-286: Multi-floor documentation updates (Phase 2) — blocked on Phase 2 engineering
+- [x] HAL-171/HAL-266: Hardware setup guide — completed 2026-03-15 (`docs/hardware-setup.md`)
+- [x] HAL-172/HAL-267: Calibration guide — completed 2026-03-16 (`docs/calibration-guide.md`, verified against codebase — all sections present)
+- [x] HAL-174/HAL-269: GitHub README — completed 2026-03-15 (`README.md`)
+- [x] HAL-175/HAL-270: Installation guide — completed 2026-03-15 (`docs/installation.md`)
+- [x] HAL-176/HAL-271: Code commentary — completed 2026-03-16 (module docstrings, `backend/README.md`)
+- [x] HAL-177: Documentation review (QA) — completed 2026-03-16
+- [x] HAL-191/HAL-286: Multi-floor documentation updates — completed 2026-03-19. Updated hardware-setup.md (multi-floor deployment strategy, cross-floor verification), calibration-guide.md (per-floor procedure, stairwell zone calibration), architecture.md (expanded floor detection algorithm with hysteresis, transition zones, cross-floor tracking), installation.md (Part 5: multi-floor configuration, multi-floor checklist), README.md (fixed cost figures, removed stale known limitation about missing floor 2/3 config)
 
-**Note:** Many tasks exist as duplicates under two different parent issues. Closed duplicates with cross-references.
+**Note:** Many tasks existed as duplicates under two different parent issues. Closed duplicates with cross-references.
 
 ## Important Notes
 - HAL-110 and HAL-205 had overlapping scope. Both now addressed: comprehensive README rewrite + code comments across all JS modules.
 - Dashboard has two parallel rendering implementations: inline DOM in app.js (active) and standalone canvas/DOM class modules (not wired in). Future work should integrate or choose one.
-- Floors 2 and 3 have SVG files but no CONFIG entries — need config + waypoints to function.
+- Floors 2 and 3 have SVG files AND config entries with full room/waypoint definitions in `dashboard/js/config.js`. (Note: previously recorded as missing — corrected 2026-03-19.)
 - Hardware BOM and architecture docs were completable from PLAN.md + research docs without needing code.
-- Remaining doc tasks (calibration guide, installation guide, backend code commentary) require engineering work to be further along.
+- Calibration guide was written from design specs before calibration code existed — now validated against actual implementation.
+- Hardware setup guide was already comprehensive but wasn't recorded as complete in prior history updates.
 
 ## Technical Details
 - **Hardware cost:** ~$153 for Phase 1 (with mounting), ~$117 additional for Phase 2, ~$270 total
@@ -99,4 +110,4 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - **Recommended board:** ESP32-S3-DevKitC-1 (N16R8) — 16MB flash, 8MB PSRAM
 
 ---
-*Last updated: 2026-03-15 — HAL-153 completed: RPi deployment setup (Mosquitto, systemd, mDNS, backup, monitoring). 440 total tests pass.*
+*Last updated: 2026-03-19 — Phase 8 Calibration System (HAL-156) complete. Three calibration modules (collector, builder, zone_recal) with full REST API and 102 tests. All documentation tasks also complete.*

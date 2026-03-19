@@ -134,6 +134,91 @@ class CalibrationStatus(BaseModel):
     )
 
 
+class GridPoint(BaseModel):
+    """A single calibration grid point with its collected data status."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    x: float = Field(..., ge=0.0, description="X position in meters")
+    y: float = Field(..., ge=0.0, description="Y position in meters")
+    collected: bool = Field(False, description="Whether data has been collected")
+    frame_count: int = Field(0, ge=0, description="CSI frames collected at this point")
+
+
+class CalibrationSessionStatus(BaseModel):
+    """Status of an active or completed calibration session."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    floor: int = Field(..., ge=1, le=3)
+    active: bool = Field(..., description="Whether calibration is in progress")
+    grid_resolution_m: float = Field(..., gt=0.0)
+    total_points: int = Field(..., ge=0)
+    collected_points: int = Field(..., ge=0)
+    current_point: Optional[GridPoint] = None
+    progress_pct: float = Field(..., ge=0.0, le=100.0)
+    frames_per_point: int = Field(..., ge=1)
+    started_at: Optional[float] = None
+    completed_at: Optional[float] = None
+
+
+class CalibrationStartRequest(BaseModel):
+    """Request body for starting a calibration session."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    floor: int = Field(..., ge=1, le=3)
+    grid_resolution_m: float = Field(1.0, gt=0.0, le=5.0)
+    frames_per_point: int = Field(300, ge=50, le=1000)
+
+
+class CalibrationSubmitRequest(BaseModel):
+    """Submit collected CSI data for a single grid point."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    x: float = Field(..., ge=0.0, description="Grid point X in meters")
+    y: float = Field(..., ge=0.0, description="Grid point Y in meters")
+
+
+class CalibrationBuildResult(BaseModel):
+    """Result of building the fingerprint DB from collected calibration data."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    floor: int = Field(..., ge=1, le=3)
+    fingerprints_created: int = Field(..., ge=0)
+    coverage_pct: float = Field(..., ge=0.0, le=100.0)
+    feature_dimension: int = Field(..., ge=1)
+    db_path: str
+
+
+class ZoneRecalRequest(BaseModel):
+    """Request to recalibrate a specific zone."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    floor: int = Field(..., ge=1, le=3)
+    x_min: float = Field(..., ge=0.0)
+    x_max: float = Field(..., ge=0.0)
+    y_min: float = Field(..., ge=0.0)
+    y_max: float = Field(..., ge=0.0)
+    grid_resolution_m: float = Field(1.0, gt=0.0, le=5.0)
+    frames_per_point: int = Field(300, ge=50, le=1000)
+
+
+class ZoneRecalResult(BaseModel):
+    """Result of zone recalibration."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    floor: int = Field(..., ge=1, le=3)
+    points_replaced: int = Field(..., ge=0)
+    points_added: int = Field(..., ge=0)
+    total_fingerprints: int = Field(..., ge=0)
+    zone_bounds: dict[str, float]
+
+
 class SystemStatus(BaseModel):
     """Top-level system status returned by GET /api/status."""
 

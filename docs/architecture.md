@@ -322,13 +322,35 @@ The particle spread directly feeds the **position confidence** score — tightly
 
 ### Floor Detection
 
-**Purpose:** Determine which floor a person is on in the multi-floor (Phase 2) deployment.
+**Purpose:** Determine which floor a person is on in the multi-floor deployment.
 
 **Method:** Compare CSI energy variance from each floor's TX board. The floor whose TX signal shows the strongest perturbation (highest variance in amplitude) is most likely the floor where the person is located, because:
 - Same-floor signals are attenuated less and perturbed more by nearby human bodies
-- Cross-floor signals are attenuated ~10-15 dB per floor, reducing perturbation magnitude
+- Cross-floor signals are attenuated ~12 dB per floor (configurable in `house.yaml`), reducing perturbation magnitude
 
-Stairwell transition zones are defined in `config/house.yaml`, allowing the particle filter to expect floor changes when a person enters these zones.
+**Algorithm detail (`FloorDetector`):**
+
+1. **Per-floor energy computation.** For each floor's RX boards, compute the rolling variance of CSI amplitude over a short window. This captures how much the signal is being disturbed by nearby bodies.
+2. **Floor ranking.** Rank floors by perturbation strength. The floor with the highest CSI energy variance is the candidate floor.
+3. **Hysteresis.** To prevent noisy floor flips from momentary signal fluctuations, the detector requires **3 consecutive frames** agreeing on a new floor before switching. This means brief signal anomalies (e.g., a door opening that temporarily changes multipath) don't trigger false floor changes.
+4. **Transition zone relaxation.** When the tracker's position estimate falls within a stairwell transition zone (defined in `house.yaml`), hysteresis drops to **1 frame**, allowing rapid floor transitions as a person walks between floors.
+5. **Confidence scoring.** The floor detector outputs a confidence value based on the energy ratio between the top-ranked floor and the second-ranked floor. A large ratio (e.g., 10:1) produces high confidence; a close ratio (e.g., 2:1) produces low confidence, indicating the person may be between floors.
+
+**Transition zones** are axis-aligned bounding boxes in `house.yaml`:
+
+```yaml
+transition_zones:
+  - name: "Main Stairwell (1st→2nd)"
+    floors: [1, 2]
+    x_min: 4.0
+    x_max: 6.5
+    y_min: 3.5
+    y_max: 6.5
+```
+
+Each zone connects exactly two floors. A person entering the zone on Floor 1 can transition to Floor 2 (and vice versa) with minimal hysteresis delay.
+
+**Cross-floor tracking:** The backend maintains independent `FloorPipeline` instances for each floor. When the floor detector identifies a floor change, the person's tracking state (particle filter, vitals history) is handed off from the source floor's pipeline to the destination floor's pipeline. The particle filter is re-initialized near the transition zone exit on the new floor, preserving velocity estimates but resetting position particles to the stairwell area.
 
 **Module:** `tracker/floor_detector.py`
 

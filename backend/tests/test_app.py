@@ -146,22 +146,35 @@ class TestCalibrationStatus:
 
 class TestCalibrationStart:
     def test_start_calibration(self, client):
-        resp = client.post("/api/calibration/start?floor=1")
+        resp = client.post(
+            "/api/calibration/start",
+            json={"floor": 1, "grid_resolution_m": 1.0, "frames_per_point": 300},
+        )
         assert resp.status_code == 200
         body = resp.json()
-        assert body["status"] == "calibrating"
         assert body["floor"] == 1
+        assert body["active"] is True
+        assert body["total_points"] > 0
 
     def test_already_calibrating(self, client):
-        client.post("/api/calibration/start?floor=2")
-        resp = client.post("/api/calibration/start?floor=2")
-        assert resp.status_code == 200
-        assert resp.json()["status"] == "already_calibrating"
+        client.post(
+            "/api/calibration/start",
+            json={"floor": 2, "grid_resolution_m": 1.0, "frames_per_point": 300},
+        )
+        resp = client.post(
+            "/api/calibration/start",
+            json={"floor": 2, "grid_resolution_m": 1.0, "frames_per_point": 300},
+        )
+        assert resp.status_code == 409
+        assert "already in progress" in resp.json()["detail"]
 
     def test_invalid_floor(self, client):
-        resp = client.post("/api/calibration/start?floor=99")
-        assert resp.status_code == 400
-        assert "not configured" in resp.json()["detail"]
+        resp = client.post(
+            "/api/calibration/start",
+            json={"floor": 99},
+        )
+        # Pydantic validation may reject floor=99 (max 3) before reaching handler
+        assert resp.status_code in (400, 422)
 
 
 # ── WebSocket /ws/tracking ──────────────────────────────────────
