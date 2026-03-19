@@ -1,0 +1,83 @@
+name: Deploy Dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/**'
+      - '.github/workflows/deploy-dashboard.yml'
+
+  workflow_dispatch: {}
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  STACK_NAME: wifi-csi-dashboard
+
+jobs:
+  test:
+    name: Dashboard Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+      - run: npm ci
+      - run: npm test
+
+  deploy:
+    name: Deploy to S3
+    needs: test
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Get stack outputs
+        id: stack
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query 'Stacks[0].Outputs[?OutputKey==`BucketName`].OutputValue' --output text)
+          DIST_ID=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+            --query 'Stacks[0].Outputs[?OutputKey==`DistributionId`].OutputValue' --output text)
+          echo "bucket=$BUCKET" >> "$GITHUB_OUTPUT"
+          echo "distribution_id=$DIST_ID" >> "$GITHUB_OUTPUT"
+
+      - name: Sync to S3
+        run: |
+          aws s3 sync dashboard/ s3://${{ steps.stack.outputs.bucket }} \
+            --delete \
+            --exclude "node_modules/*" \
+            --exclude "package*.json" \
+            --exclude "vitest.config.js" \
+            --exclude "tests/*" \
+            --exclude ".DS_Store" \
+            --cache-control "public, max-age=3600"
+
+          # HTML files: short cache for quick updates
+          for html in dashboard/*.html; do
+            [ -f "$html" ] || continue
+            aws s3 cp "$html" "s3://${{ steps.stack.outputs.bucket }}/$(basename "$html")" \
+              --cache-control "public, max-age=60"
+          done
+
+      - name: Invalidate CloudFront
+        run: |
+          aws cloudfront create-invalidation \
+            --distribution-id ${{ steps.stack.outputs.distribution_id }} \
+            --paths "/*"
