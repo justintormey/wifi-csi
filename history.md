@@ -25,7 +25,7 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 9. **Phase 1 = single floor** — Validate on one floor before expanding to full house.
 
 ## Current Status
-🚧 **In Progress** — Dashboard frontend complete (Phase 1), backend scaffolding exists, firmware not started.
+🚧 **Software Complete / Hardware Blocked** — 653 tests passing. All code (firmware, backend, dashboard, calibration, vitals) is written and tested. Awaiting physical ESP32-S3 deployment.
 
 ### Completed
 - ✅ Project plan written and revised (PLAN.md)
@@ -74,17 +74,29 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
   - 102 calibration tests passing, 405 total tests passing
 
 ### Not Started
-- Firmware MQTT client implementation (binary publish + reconnect)
+- ⏳ **Hardware deployment** — half-bakery issue #56. Deployment runbook created (`docs/deployment-runbook.md`). Requires human with physical boards. (2026-04-12)
 - Wiring standalone rendering modules into app.js (floor 2/3 config, noise overlay, sparklines)
 
 ## Unfinished Work
 
-### Immediate Next Steps (Engineering — not Documentarian scope)
-1. Build CSI simulator (`dashboard/js/simulator.js`)
-2. Build web dashboard with sci-fi HUD theme
-3. Implement backend algorithms (processor, tracker, vitals)
-4. Build FastAPI + WebSocket server
-5. Write ESP32-S3 firmware (STA mode, HT40 CSI, MQTT)
+### Immediate Next Steps — Hardware Deployment (half-bakery #56)
+> **Deployment runbook:** `docs/deployment-runbook.md` — single-page checklist for the full deployment.
+
+1. **Flash firmware** to 4x ESP32-S3 boards (firmware ready, ESP-IDF 5.x) — record MAC addresses
+2. **Deploy boards** on Floor 1: 1 TX (ceiling center) + 3 RX (walls, chest height)
+3. **Update `sensors.yaml`** with real MAC addresses and measured board positions
+4. **Validate MQTT** data flow: `mosquitto_sub -t 'csi/0/#' -v`
+5. **Start backend**, confirm end-to-end pipeline: ESP32 → MQTT → backend → WebSocket → dashboard
+6. **Run calibration walk** (~17 min) to build fingerprint database
+7. **Tune vital signs** parameters against real data using `tools/vitals_benchmark.py`
+8. **Run QA test suite** against real hardware data
+
+### Future (After Phase 1 Validated)
+- Multi-floor expansion: deploy 8 more boards on Floors 2-3 (channels 6, 11)
+- Cross-floor tracking validation
+- Long-running stability test (24h+)
+- External antenna upgrade evaluation
+- Wire standalone rendering modules into app.js
 
 ### Documentation Tasks (Phase 11 — HAL-170: COMPLETE as of 2026-03-16)
 - [x] HAL-205: Dashboard README — completed 2026-03-15
@@ -118,4 +130,4 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - **Recommended board:** ESP32-S3-DevKitC-1 (N16R8) — 16MB flash, 8MB PSRAM
 
 ---
-*Last updated: 2026-03-19 — Phase 9 Vital Signs Tuning infrastructure complete (HAL-161). Centralized vitals config, benchmark script, 15 new tests. Blocked on real hardware data for actual parameter tuning. 653 total tests passing.*
+*Last updated: 2026-04-12 — Deployment runbook created (`docs/deployment-runbook.md`) for hardware deployment (half-bakery #56). Project is software-complete with 653 tests; blocked on physical ESP32-S3 deployment.*
