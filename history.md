@@ -56,6 +56,80 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 ### In Progress
 - Research: signal processing validation document written
 
+### RuView Research Findings (half-bakery #60, 2026-04-12)
+
+**Subject:** https://github.com/ruvnet/RuView — WiFi DensePose platform for home/edge sensing.
+**Stars:** 46,488 (high community signal; actively maintained — last push 2026-04-12)
+**Hardware:** ESP32-S3 (identical to wifi-csi)
+**Primary language:** Rust (ruvector stack), plus Python, JavaScript/TypeScript, C firmware
+**Scope:** Presence detection, vital signs (breathing + heart rate), pose estimation (17 COCO keypoints via WiFlow), activity recognition, multi-frequency mesh, WASM edge modules, spiking neural networks, camera-supervised training
+
+#### Overall Verdict
+**High relevance for algorithm and firmware reference; not a drop-in dependency.** RuView's architecture is fundamentally different (Rust, UDP direct, DensePose-class localization) and far more complex than wifi-csi's Python/MQTT/KNN home-monitoring approach. Do NOT attempt wholesale integration. Select specific techniques.
+
+#### Directly Applicable to wifi-csi
+
+**1. QEMU Firmware Testing (ADR-061) — CRITICAL for hardware-blocked status**
+RuView solved our exact problem: all firmware testing required physical hardware. They built an ESP32-S3 QEMU emulation setup using Espressif's official QEMU fork that emulates dual-core Xtensa LX7, UART, FreeRTOS, flash, and lwIP networking. Testable modules in QEMU: NVS config, edge DSP, frame serialization, UDP streaming, WASM runtime. Non-testable in QEMU: WiFi CSI callback (requires RF PHY), channel hopping. This directly addresses wifi-csi's hardware deployment blocker — firmware logic could be validated before physical boards arrive.
+- ADR: `docs/adr/ADR-061-qemu-esp32s3-firmware-testing.md`
+- Action: Evaluate adopting QEMU test infrastructure for `firmware/esp32-csi-node/`
+
+**2. Firmware Build Guard (csi_collector.c, ADR-057)**
+RuView added a compile-time `#error` if `CONFIG_ESP_WIFI_CSI_ENABLED` is not set in sdkconfig. Without it, firmware compiles but crashes at runtime with a cryptic error. wifi-csi's firmware should adopt this guard — it's a single `#ifndef` block and prevents a painful debugging session at first hardware deployment.
+- File: `firmware/esp32-csi-node/main/csi_collector.c` (lines ~28-35)
+- Action: Add identical guard to wifi-csi `firmware/main/csi_handler.c`
+
+**3. Conjugate Multiplication for Phase Cleaning (ADR-014)**
+RuView adopted this as their primary phase cleaning method over raw phase unwrapping. The math: `CSI_ratio[k] = H_1[k] * conj(H_2[k])` cancels hardware CFO/SFO/PDD offsets that corrupt raw ESP32-S3 phase, leaving only environment-caused phase changes. wifi-csi's `phase_sanitizer.py` currently uses Z-score outlier removal + unwrapping. Conjugate multiplication is more robust for multi-antenna setups and would pair well with HT40 mode.
+- Reference: SpotFi (SIGCOMM 2015), IndoTrack (MobiCom 2017)
+- Applicability: Medium — requires two antenna paths; needs validation with actual hardware data
+- ADR: `docs/adr/ADR-014-sota-signal-processing.md`
+
+**4. Hampel Filter for Outlier Detection (ADR-014)**
+RuView replaced Z-score outlier detection with the Hampel filter (median ± 1.4826 × MAD). Rationale: Z-score uses mean/std, which are themselves corrupted by outliers (masking effect). Hampel filter uses median/MAD, resistant to 50% contamination. wifi-csi's `amplitude_filter.py` uses Z-score. Hampel filter would improve robustness to burst interference and multipath spikes — especially relevant for multi-floor deployment where interference is higher.
+- Math: `median = med(x[i-w..i+w])`, `MAD = med(|x[j] - median|)`, replace outliers > t×1.4826×MAD with median
+- Applicability: HIGH — pure Python, drop-in replacement for existing Z-score logic
+
+**5. Min-Cut Person Separation (ADR-075)**
+wifi-csi uses NMF-based multi-person detection in `occupancy.py`. RuView's ADR-075 documents a more physically grounded approach: Stoer-Wagner min-cut on a subcarrier correlation graph. People moving independently create separate correlated subcarrier clusters; min-cut finds the partition boundaries. Key insight: when two people move independently, they create two groups of subcarriers correlated internally but not across groups. This eliminates the calibration-dependency of NMF and doesn't require assuming a person count.
+- Reference: Stoer-Wagner algorithm (O(VE + V² log V))
+- Applicability: MEDIUM — significant implementation work; more relevant after Phase 1 validation with real hardware shows NMF limitations
+- ADR: `docs/adr/ADR-075-mincut-person-separation.md`
+
+**6. Fresnel Zone Breathing Model (ADR-014)**
+wifi-csi's `breathing.py` uses bandpass + FFT with in-band SNR gating. RuView augments zero-crossing detection with Fresnel zone geometry: chest motion at 5mm amplitude is modeled against TX-RX-body geometry to predict expected signal variation amplitude. This improves detection reliability in multipath-rich environments where FFT peak can be masked.
+- Math: `ΔΦ = 2π × 2Δd / λ`; expected amplitude `A = |sin(ΔΦ/2)|`
+- Reference: FarSense (MobiCom 2019), Wi-Sleep (UbiComp 2021)
+- Applicability: MEDIUM — useful for tuning once real hardware data available; adds a confidence scoring mechanism
+
+**7. Multi-Frequency Mesh / Neighbor APs as Free Illuminators (ADR-073)**
+wifi-csi already uses channels 1/6/11 for floor separation. RuView's ADR-073 documents a more aggressive strategy: deliberately hop across 6 channels (1,3,5,6,9,11) to exploit neighbor APs as passive illuminators, eliminating null subcarriers caused by frequency-selective fading. A single channel had 19% null subcarriers from metal objects. Multi-channel reduced this. Relevant for wifi-csi Phase 2 (multi-floor) where deploying 5 GHz channels alongside 2.4 GHz would further extend coverage.
+- Applicability: Phase 2 / future — not needed for Phase 1 single-floor validation
+
+**8. CSI Rate Limiting in Firmware (ADR-039)**
+RuView's csi_collector.c limits UDP sends to one per 20ms (50Hz max) via `s_last_send_us` timestamp gating, preventing lwIP packet buffer exhaustion (ENOMEM) under high callback rates. wifi-csi targets 100Hz but may face the same ENOMEM issue under load. This is a defensive measure worth adding to firmware before hardware deployment.
+- Applicability: HIGH — single constant + timestamp check, prevents silent data loss
+
+#### What to Ignore / Not Adopt
+
+- **Rust/ruvector/rvdna stack** — too complex, different ecosystem, no benefit over existing Python implementation for home monitoring scale
+- **WiFlow / DensePose pose estimation** — 17-keypoint pose is massively more complex; requires training data and camera ground truth; overkill for room occupancy and vital signs
+- **Cognitum Seed** — proprietary external hardware dependency
+- **WASM edge modules** — no benefit given wifi-csi's fixed Raspberry Pi backend
+- **Spiking Neural Networks (ADR-074)** — academic interest but not needed for Phase 1
+- **Camera-supervised training (ADR-079)** — only relevant if pursuing full pose estimation (not a goal)
+
+#### Documentation Quality Assessment
+RuView's ADR system is exceptional — 80+ ADRs with: context (what exists + gaps), decision (what was chosen + math), rationale (why this vs alternatives), and implementation status. Serves as a reliable reference for algorithm decisions and engineering tradeoffs. The firmware README is thorough and well-tested. Signal processing ADRs cite specific papers with page-level math that can be replicated independently.
+
+#### Algorithm References Extracted (no RuView dependency needed)
+These papers are available independently and directly applicable to wifi-csi:
+- SpotFi (SIGCOMM 2015) — conjugate multiplication phase cleaning
+- IndoTrack (MobiCom 2017) — conjugate multiplication + AoA
+- FarSense (MobiCom 2019) — Fresnel zone breathing model
+- Wi-Sleep (UbiComp 2021) — Fresnel zone, sleep vital signs
+- WiGest (SenSys 2015), WiDance (MobiCom 2017) — Hampel filter validation
+
 ### Recently Completed
 - ✅ Blog series organized for publishing (half-bakery #57, 2026-04-12):
   - Created `blog/` directory with numbered, publish-ready posts
@@ -102,6 +176,18 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 7. **Tune vital signs** parameters against real data using `tools/vitals_benchmark.py`
 8. **Run QA test suite** against real hardware data
 
+### Algorithm Improvements (From RuView Research, half-bakery #60)
+Priority order — do after hardware deployment and Phase 1 validation unless noted:
+
+1. **[Pre-deployment, HIGH] Add CSI build guard to firmware** — `#ifndef CONFIG_ESP_WIFI_CSI_ENABLED / #error` in `firmware/main/csi_handler.c`. Prevents silent runtime crash if sdkconfig is misconfigured. 5-line change.
+2. **[Pre-deployment, HIGH] Add send-rate limiter to firmware** — Cap UDP sends at 50Hz max via `s_last_send_us` timestamp guard. Prevents lwIP ENOMEM under high CSI callback rates. ~10-line change.
+3. **[Post Phase 1, HIGH] Replace Z-score with Hampel filter in `amplitude_filter.py`** — Median/MAD-based outlier detection; more robust to burst interference than mean/std. Pure Python, drop-in.
+4. **[Post Phase 1, MEDIUM] Evaluate Fresnel zone model for breathing confidence scoring** — Augment `breathing.py` SNR gating with geometry-based expected amplitude. Useful when real hardware shows FFT peak masking.
+5. **[Post Phase 1, MEDIUM] Evaluate conjugate multiplication in `phase_sanitizer.py`** — Requires two antenna paths; more robust than unwrapping for ESP32-S3 phase data. Validate with real data first.
+6. **[Phase 2, MEDIUM] Min-cut person separation** — Replace NMF in `occupancy.py` with Stoer-Wagner min-cut on subcarrier correlation graph. More physically grounded; no calibration dependency.
+7. **[Phase 2, LOW] Multi-frequency channel hopping** — Exploit neighbor APs as illuminators; reduces null subcarrier rate. Relevant for floors 2-3 deployment.
+8. **[Optional] QEMU firmware test setup** — Reference RuView ADR-061 to set up ESP32-S3 QEMU emulation for firmware CI without physical hardware.
+
 ### Future (After Phase 1 Validated)
 - Multi-floor expansion: deploy 8 more boards on Floors 2-3 (channels 6, 11)
 - Cross-floor tracking validation
@@ -141,4 +227,4 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - **Recommended board:** ESP32-S3-DevKitC-1 (N16R8) — 16MB flash, 8MB PSRAM
 
 ---
-*Last updated: 2026-04-12 — half-bakery #2 triaged: all 18 TODO/FIXME/XXX comments were in `dashboard/node_modules/css-tree/` (third-party, gitignored). No project code changes needed. Own-code TODOs are content placeholders (screenshots, URLs) blocked on hardware.*
+*Last updated: 2026-04-12 — half-bakery #60: RuView (github.com/ruvnet/RuView) researched and assessed. 8 actionable algorithm improvements identified. QEMU testing, build guard, rate limiter, Hampel filter, Fresnel zone model, conjugate multiplication, min-cut person counting, and multi-frequency mesh all documented with priority and effort estimates. See "RuView Research Findings" and "Algorithm Improvements" sections above.*
