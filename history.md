@@ -57,6 +57,17 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - Research: signal processing validation document written
 
 ### Recently Completed
+- ✅ Blog series organized for publishing (half-bakery #57, 2026-04-12):
+  - Created `blog/` directory with numbered, publish-ready posts
+  - `blog/01-announcement.md` — project teaser (ready to publish, needs dashboard screenshot)
+  - `blog/02-signal-processing.md` — signal processing deep dive (ready to publish)
+  - `blog/03-early-hardware-results.md` — skeleton, blocked on hardware (#56)
+  - `blog/04-open-source-launch.md` — full draft, blocked on hardware validation
+  - `blog/linkedin-teaser.md` — LinkedIn teaser post (ready to publish)
+  - `blog/README.md` — publishing checklist and status tracker
+  - `content-strategy.md` — full content calendar, voice guide, audience segmentation
+  - `launch-strategy.md` — cross-platform launch plan (HN, Reddit, Twitter/X, LinkedIn)
+  - Posts 1, 2, and LinkedIn teaser are independently publishable now
 - ✅ Phase 9 — Vital Signs Tuning infrastructure (HAL-161) (2026-03-19):
   - `backend/config/vitals.yaml` — Centralized ~25 tunable parameters for breathing, heart rate, and motion detection
   - `backend/config/vitals_config.py` — Config loader with typed dataclasses and factory methods for creating pre-configured extractors
