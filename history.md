@@ -141,4 +141,4 @@ Real-time people tracking and vital signs monitoring system for a 3500 sq ft, th
 - **Recommended board:** ESP32-S3-DevKitC-1 (N16R8) — 16MB flash, 8MB PSRAM
 
 ---
-*Last updated: 2026-04-12 — Deployment runbook created (`docs/deployment-runbook.md`) for hardware deployment (half-bakery #56). Project is software-complete with 653 tests; blocked on physical ESP32-S3 deployment.*
+*Last updated: 2026-04-12 — half-bakery #2 triaged: all 18 TODO/FIXME/XXX comments were in `dashboard/node_modules/css-tree/` (third-party, gitignored). No project code changes needed. Own-code TODOs are content placeholders (screenshots, URLs) blocked on hardware.*
