@@ -212,6 +212,4 @@ Contributions welcome. This project is in active development — check the issue
 
 ## License
 
-<!-- TODO: Choose MIT or Apache 2.0 and add LICENSE file -->
-
-License TBD. See [LICENSE](LICENSE) when added.
+This project is licensed under the [MIT License](LICENSE).
