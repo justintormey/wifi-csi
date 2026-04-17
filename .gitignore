@@ -3,3 +3,7 @@ node_modules/
 __pycache__/
 .venv/
 *.pyc
+.env
+.DS_Store
+.local/
+.agent/
