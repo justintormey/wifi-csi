@@ -123,7 +123,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="WiFi CSI Tracking",
     description="Real-time people tracking and vital signs via WiFi CSI.",
-    version="1.0.0",
+    version="0.8.0",
     lifespan=lifespan,
 )
 
