@@ -2,6 +2,14 @@
 
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [0.8.1] - 2026-08-28
+
+Pre-deployment firmware hardening (RuView backlog items 1 and 2).
+
+- Added compile-time guard in `firmware/main/csi_handler.c`: build now fails with a clear `#error` if `CONFIG_ESP_WIFI_CSI_ENABLED` is missing from sdkconfig, instead of producing firmware that boots but never receives CSI callbacks. Verified both ways in the ESP-IDF v5.2 container: clean build with the option set, hard failure at the guard with it stripped.
+- Confirmed the send-rate limiter (RuView item 2) was already implemented: the CSI callback is capped at 100Hz and never touches the network; a ring buffer plus a dedicated FreeRTOS publish task already isolates lwIP from callback bursts. No change needed.
+- Added `firmware/.gitignore` for generated build artifacts (`build/`, `sdkconfig`).
+
 ## [0.8.0] - 2026-08-18
 
 SemVer baseline established.

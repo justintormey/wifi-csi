@@ -36,6 +36,14 @@
 
 #include <string.h>
 
+/* CSI support must be compiled into the WiFi driver. Without this option
+ * the firmware builds cleanly but esp_wifi_set_csi() fails at runtime and
+ * no CSI callbacks ever fire. sdkconfig.defaults sets it; this guard
+ * catches a regenerated or hand-edited sdkconfig that lost it. */
+#ifndef CONFIG_ESP_WIFI_CSI_ENABLED
+#error "CONFIG_ESP_WIFI_CSI_ENABLED is not set. Enable 'WiFi CSI' in menuconfig (Component config -> Wi-Fi) or restore sdkconfig.defaults."
+#endif
+
 static const char *TAG = "csi_handler";
 
 /* ── Rate limiting ────────────────────────────────────────────────── */

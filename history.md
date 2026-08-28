@@ -179,8 +179,8 @@ These papers are available independently and directly applicable to wifi-csi:
 ### Algorithm Improvements (From RuView Research, half-bakery #60)
 Priority order — do after hardware deployment and Phase 1 validation unless noted:
 
-1. **[Pre-deployment, HIGH] Add CSI build guard to firmware** — `#ifndef CONFIG_ESP_WIFI_CSI_ENABLED / #error` in `firmware/main/csi_handler.c`. Prevents silent runtime crash if sdkconfig is misconfigured. 5-line change.
-2. **[Pre-deployment, HIGH] Add send-rate limiter to firmware** — Cap UDP sends at 50Hz max via `s_last_send_us` timestamp guard. Prevents lwIP ENOMEM under high CSI callback rates. ~10-line change.
+1. ✅ **[DONE 2026-08-28, v0.8.1] CSI build guard** — `#error` guard added to `firmware/main/csi_handler.c`. Verified in ESP-IDF v5.2 Docker: builds clean with `CONFIG_ESP_WIFI_CSI_ENABLED=y`, fails at the guard with it stripped (negative control run).
+2. ✅ **[ALREADY IMPLEMENTED — verified 2026-08-28] Send-rate limiter** — firmware already caps the CSI callback at 100Hz (`CSI_MAX_RATE_HZ` timestamp gate) and the callback never performs network I/O: a ring buffer + dedicated FreeRTOS publish task isolates lwIP from callback bursts, which is a stronger defense than RuView's 50Hz UDP cap. No change made.
 3. **[Post Phase 1, HIGH] Replace Z-score with Hampel filter in `amplitude_filter.py`** — Median/MAD-based outlier detection; more robust to burst interference than mean/std. Pure Python, drop-in.
 4. **[Post Phase 1, MEDIUM] Evaluate Fresnel zone model for breathing confidence scoring** — Augment `breathing.py` SNR gating with geometry-based expected amplitude. Useful when real hardware shows FFT peak masking.
 5. **[Post Phase 1, MEDIUM] Evaluate conjugate multiplication in `phase_sanitizer.py`** — Requires two antenna paths; more robust than unwrapping for ESP32-S3 phase data. Validate with real data first.
